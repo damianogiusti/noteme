@@ -6,10 +6,21 @@ import android.util.Log;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseOptions;
+import com.couchbase.lite.Document;
+import com.couchbase.lite.Emitter;
 import com.couchbase.lite.Manager;
+import com.couchbase.lite.Mapper;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryRow;
+import com.couchbase.lite.View;
 import com.couchbase.lite.android.AndroidContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by damiano on 11/05/16.
@@ -19,6 +30,8 @@ public class CouchbaseDB {
     private static final String TYPE_KEY = "type";
     private static final String DB_NAME = "noteme";
 
+    private static final String VIEW_NOTE = "viewNote";
+
     private Manager man;
     private Database db;
     private Context ctx;
@@ -26,6 +39,7 @@ public class CouchbaseDB {
     public CouchbaseDB(Context c) {
         ctx = c;
         createManager();
+        createViewForNota();
     }
 
     /**
@@ -48,21 +62,87 @@ public class CouchbaseDB {
                 options.setCreate(true);
                 db = man.getDatabase(DB_NAME);
                 //db = man.openDatabase(DB_NAME, options);
-                Log.d(TAG, "Database creato\n");
+                Log.d(TAG, "Database creato");
 
 
             } catch (CouchbaseLiteException e) {
-                Log.d(TAG, "Impossibile accedere al database\n");
+                Log.d(TAG, "Impossibile accedere al database");
                 e.printStackTrace();
             }
         }
     }
 
+    private void createViewForNota() {
+        View view = db.getView(VIEW_NOTE);
+        view.setMap(new Mapper() {
+            @Override
+            public void map(Map<String, Object> document, Emitter emitter) {
+                if (document.containsKey(TYPE_KEY) &&
+                        document.get(TYPE_KEY).equals(Nota.class.getName())) {
+                    emitter.emit(Nota.class.getName(), document.get(Nota.class.getName()));
+                }
+            }
+        }, "1");
+    }
+
     /**
      * Salva una singola nota nel database
+     *
      * @param nota
+     * @throws IOException
+     * @throws CouchbaseLiteException
      */
-    public void salvaNota(Nota nota) {
+    public void salvaNota(Nota nota) throws IOException, CouchbaseLiteException {
+        Document document = db.getDocument(nota.getID());
+        Map<String, Object> properties = document.getProperties();
+        if (properties == null)
+            properties = new HashMap<>();
 
+        ObjectMapper objectMapper = new ObjectMapper();
+        String s = objectMapper.writeValueAsString(nota);
+        properties.put(Nota.class.getName(), s);            // metto nelle properties una stringa json
+
+        properties.put(TYPE_KEY, Nota.class.getName());
+        document.putProperties(properties);
+    }
+
+    /**
+     * Salva un ArrayList di oggetti di tipo Nota nel database
+     *
+     * @param note
+     * @throws IOException
+     * @throws CouchbaseLiteException
+     */
+    public void salvaNote(ArrayList<Nota> note) throws IOException, CouchbaseLiteException {
+        long time = System.currentTimeMillis();
+        for (Nota nota : note)
+            salvaNota(nota);
+        Log.d(TAG, String.format("note salvate in %s ms", System.currentTimeMillis() - time));
+    }
+
+    public Nota leggiNota(String id) {
+        // TODO
+        return null;
+    }
+
+    /**
+     * Legge le note memorizzate nel database
+     * @return
+     * @throws CouchbaseLiteException
+     * @throws IOException
+     */
+    public ArrayList<Nota> leggiNote() throws CouchbaseLiteException, IOException {
+        long time = System.currentTimeMillis();
+        Query query = db.getView(VIEW_NOTE).createQuery();
+        query.setMapOnly(true);
+        QueryEnumerator rows = query.run();
+
+        ArrayList<Nota> note = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        for (QueryRow row : rows) {
+            note.add(objectMapper.readValue(((String) row.getValue()), Nota.class));
+        }
+        Log.d(TAG, String.format("note lette in %s ms", System.currentTimeMillis() - time));
+        return note;
     }
 }

@@ -17,6 +17,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/NOTICE' // will not include NOTICE file
+        exclude 'META-INF/LICENSE' // will not include LICENSE file
+    }
 }
 
 dependencies {
@@ -26,4 +31,5 @@ dependencies {
     compile 'com.android.support:design:23.3.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.couchbase.lite:couchbase-lite-android:1.2.0'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.7.4'
 }
