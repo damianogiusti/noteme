@@ -57,4 +57,12 @@ public class CouchbaseDB {
             }
         }
     }
+
+    /**
+     * Salva una singola nota nel database
+     * @param nota
+     */
+    public void salvaNota(Nota nota) {
+
+    }
 }
