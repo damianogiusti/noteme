@@ -22,4 +22,16 @@
         app:headerLayout="@layout/nav_header_home"
         app:menu="@menu/activity_home_drawer" />
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_for_notes"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical">
+
+        <!--<include-->
+            <!--layout="@layout/note_cardview"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content" />-->
+        </android.support.v7.widget.RecyclerView>
+
 </android.support.v4.widget.DrawerLayout>

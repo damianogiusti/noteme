@@ -8,14 +8,23 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.util.ArrayList;
+
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = "HomeActivity";
+
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +51,12 @@ public class HomeActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_for_notes);
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mAdapter = new NotesRecyclerViewAdapter(getDataSet());
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     @Override
@@ -99,5 +114,30 @@ public class HomeActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    //onClick della nota da implementare
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ((NotesRecyclerViewAdapter) mAdapter).setOnItemClickListener(new NotesRecyclerViewAdapter
+                .MyClickListener() {
+            @Override
+            public void onItemClick(int position, View v) {
+                Log.d("DEBUG CLICK NOTA","NOTA PREMUTA:" + position);
+            }
+        });
+    }
+
+    //metodo per creare note a caso(per testare)
+    private ArrayList<Nota> getDataSet() {
+        ArrayList results = new ArrayList<Nota>();
+        for (int index = 0; index < 20; index++) {
+            Nota note = new Nota();
+            note.setTitle("TITOLONE " + index);
+            note.setText("robe a caso per debug, numero: " + index);
+            results.add(index, note);
+        }
+        return results;
     }
 }
