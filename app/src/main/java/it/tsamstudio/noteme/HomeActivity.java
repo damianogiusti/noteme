@@ -15,7 +15,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -129,15 +131,21 @@ public class HomeActivity extends AppCompatActivity
         });
     }
 
-    //metodo per creare note a caso(per testare)
+    //metodo per creare note a caso (per testare)
     private ArrayList<Nota> getDataSet() {
         ArrayList results = new ArrayList<Nota>();
+
         for (int index = 0; index < 20; index++) {
             Nota note = new Nota();
             note.setTitle("TITOLONE " + index);
             note.setText("robe a caso per debug, numero: " + index);
+            note.setTag("family");
+            note.setExpireDate(new Date());
             results.add(index, note);
         }
+        /*CouchbaseDB db = new CouchbaseDB(getApplicationContext());
+         *note = db.leggiNote()
+        * */
         return results;
     }
 }
