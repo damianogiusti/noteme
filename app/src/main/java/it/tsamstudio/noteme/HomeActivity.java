@@ -37,7 +37,7 @@ public class HomeActivity extends AppCompatActivity
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    // TODO chiamata fragment per creazione nuova nota
+                    NuovaNotaFragment.newInstance().show(getSupportFragmentManager(), "DIALOG");
                 }
             });
         }
