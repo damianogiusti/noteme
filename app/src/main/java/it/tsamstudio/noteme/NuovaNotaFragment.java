@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,8 @@ import android.view.WindowManager;
 
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
+import com.aurelhubert.ahbottomnavigation.AHClickListener;
+
 
 
 /**
@@ -50,11 +53,51 @@ public class NuovaNotaFragment extends DialogFragment {
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
         dialogView = inflater.inflate(R.layout.fragment_nuova_nota, null, false);
-        AHBottomNavigation bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
+        final AHBottomNavigation bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
+        bottomNavigation.setForceTitlesDisplay(false);
+        AHBottomNavigationItem item1 = new AHBottomNavigationItem("1", R.drawable.ic_attach_file_white_48dp);
+        item1.setListener(new AHClickListener() {
+            @Override
+            public void onClickListener(View view) {
 
-        for (int i = 0; i < 4; i++) {
-            bottomNavigation.addItem(new AHBottomNavigationItem("" + (i + 1), R.drawable.ic_note_add_white_18dp));
-        }
+            }
+
+            @Override
+            public boolean onLongClickListener(View view) {
+                Log.d("onLongPress", "" + bottomNavigation.getCurrentItem());
+                return true;
+            }
+        });
+        AHBottomNavigationItem item2 = new AHBottomNavigationItem("2", R.drawable.ic_mic_white_48dp);
+        item2.setListener(new AHClickListener() {
+            @Override
+            public void onClickListener(View view) {
+
+            }
+
+            @Override
+            public boolean onLongClickListener(View view) {
+                Log.d("onLongPress", "" + bottomNavigation.getCurrentItem());
+                return true;
+            }
+        });
+        AHBottomNavigationItem item3 = new AHBottomNavigationItem("3", R.drawable.ic_add_a_photo_white_48dp);
+        item3.setListener(new AHClickListener() {
+            @Override
+            public void onClickListener(View view) {
+
+            }
+
+            @Override
+            public boolean onLongClickListener(View view) {
+                Log.d("onLongPress", "" + bottomNavigation.getCurrentItem());
+                return true;
+            }
+        });
+
+        bottomNavigation.addItem(item1);
+        bottomNavigation.addItem(item2);
+        bottomNavigation.addItem(item3);
 
         //bottomBar = setupBottomBar(dialogView, savedInstanceState);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
