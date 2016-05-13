@@ -54,7 +54,7 @@ public class NuovaNotaFragment extends DialogFragment {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         dialogView = inflater.inflate(R.layout.fragment_nuova_nota, null, false);
         final AHBottomNavigation bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
-
+        bottomNavigation.setForceTitlesDisplay(false);
         AHBottomNavigationItem item1 = new AHBottomNavigationItem("1", R.drawable.ic_attach_file_white_48dp);
         item1.setListener(new AHClickListener() {
             @Override
@@ -68,11 +68,36 @@ public class NuovaNotaFragment extends DialogFragment {
                 return true;
             }
         });
+        AHBottomNavigationItem item2 = new AHBottomNavigationItem("2", R.drawable.ic_mic_white_48dp);
+        item2.setListener(new AHClickListener() {
+            @Override
+            public void onClickListener(View view) {
 
-//        bottomNavigation.addItem(new AHBottomNavigationItem("1", R.drawable.ic_attach_file_white_48dp));
+            }
+
+            @Override
+            public boolean onLongClickListener(View view) {
+                Log.d("onLongPress", "" + bottomNavigation.getCurrentItem());
+                return true;
+            }
+        });
+        AHBottomNavigationItem item3 = new AHBottomNavigationItem("3", R.drawable.ic_add_a_photo_white_48dp);
+        item3.setListener(new AHClickListener() {
+            @Override
+            public void onClickListener(View view) {
+
+            }
+
+            @Override
+            public boolean onLongClickListener(View view) {
+                Log.d("onLongPress", "" + bottomNavigation.getCurrentItem());
+                return true;
+            }
+        });
+
         bottomNavigation.addItem(item1);
-        bottomNavigation.addItem(new AHBottomNavigationItem("2", R.drawable.ic_mic_white_48dp));
-        bottomNavigation.addItem(new AHBottomNavigationItem("3", R.drawable.ic_add_a_photo_white_48dp));
+        bottomNavigation.addItem(item2);
+        bottomNavigation.addItem(item3);
 
         //bottomBar = setupBottomBar(dialogView, savedInstanceState);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
