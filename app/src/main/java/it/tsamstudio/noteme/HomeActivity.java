@@ -37,7 +37,8 @@ public class HomeActivity extends AppCompatActivity
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    NuovaNotaFragment.newInstance().show(getSupportFragmentManager(), "DIALOG");
+                    NuovaNotaFragment nuovaNotaFragment =NuovaNotaFragment.newInstance();
+                    nuovaNotaFragment.show(getSupportFragmentManager(), "DIALOG");
                 }
             });
         }
@@ -123,7 +124,7 @@ public class HomeActivity extends AppCompatActivity
                 .MyClickListener() {
             @Override
             public void onItemClick(int position, View v) {
-                Log.d("DEBUG CLICK NOTA","NOTA PREMUTA:" + position);
+                Log.d("DEBUG CLICK NOTA", "NOTA PREMUTA:" + position);
             }
         });
     }

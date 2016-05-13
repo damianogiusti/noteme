@@ -8,4 +8,6 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="titolo_nuova_nota">titolo</string>
+    <string name="inserisci_testo_qui">inserisci la tua nota</string>
 </resources>
