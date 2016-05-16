@@ -180,7 +180,6 @@ public class HomeActivity extends AppCompatActivity
     @Override
     public void onNuovaNotaAggiunta(Nota nota) {
         notesList.add(nota);
-        mAdapter = new NotesRecyclerViewAdapter(notesList);
-        mRecyclerView.setAdapter(mAdapter);
+        mAdapter.notifyDataSetChanged();
     }
 }

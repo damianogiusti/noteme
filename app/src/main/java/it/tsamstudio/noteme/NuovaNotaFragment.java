@@ -45,7 +45,7 @@ import java.util.TimerTask;
 public class NuovaNotaFragment extends DialogFragment {
 
     private View dialogView;
-    private TextView titolo, nota;
+    private TextView titolo, etxtNota;
     private MediaRecorder mRecorder;
     private String outputFile;
     private ImageView immagine;
@@ -104,7 +104,7 @@ public class NuovaNotaFragment extends DialogFragment {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         dialogView = inflater.inflate(R.layout.fragment_nuova_nota, null, false);
         titolo = (TextView) dialogView.findViewById(R.id.etxtTitolo);
-        nota = (TextView) dialogView.findViewById(R.id.etxtNota);
+        etxtNota = (TextView) dialogView.findViewById(R.id.etxtNota);
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
         immagine = (ImageView) dialogView.findViewById(R.id.imageView);
 
@@ -179,16 +179,16 @@ public class NuovaNotaFragment extends DialogFragment {
 
     }
 
-    //metodo chiamato quando viene chiuso il dialog per salvare la nota
+    //metodo chiamato quando viene chiuso il dialog per salvare la etxtNota
     private Nota saveNote() {
         if (titolo.getText().toString().trim().length() > 0 ||
-                nota.getText().toString().trim().length() > 0) {   //se c'è almeno uno dei parametri
+                etxtNota.getText().toString().trim().length() > 0) {   //se c'è almeno uno dei parametri
             Nota nota = new Nota();
             String titoloNota = "Nota senza titolo";
             if (titolo.getText().length() > 0)
                 titoloNota = "" + titolo.getText();
             nota.setTitle("" + titoloNota);
-            nota.setText("" + nota.getText());
+            nota.setText("" + etxtNota.getText());
             nota.setCreationDate(new Date());
             CouchbaseDB db = new CouchbaseDB(getContext());
             try {
