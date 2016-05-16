@@ -23,7 +23,6 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
-import java.io.FileInputStream;
 
 import nl.changer.audiowife.AudioWife;
 
@@ -92,25 +91,24 @@ public class MostraNotaFragment extends DialogFragment {
             txtTimer = (TextView) dialogNoteView.findViewById(R.id.txtTimer);
 
             Log.d(TAG, nota.getAudio());
-            Log.d(TAG, getActivity().getExternalFilesDir("NoteMeAudios").getAbsolutePath());
+
             File file = new File(nota.getAudio());
-            FileInputStream fileInputStream = new FileInputStream(file);
             AudioWife.getInstance()
-                    .init(getContext(), fileInputStream.getFD().)
+                    .init(getContext(), Uri.fromFile(file))
                     .setPlayView(btnPlayPause)
                     .setPauseView(btnPlayPause)
                     .setSeekBar(seekbarTime)
                     .setRuntimeView(txtTimer)
-                    .addOnPauseClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            btnPlayPause.setBackgroundResource(R.drawable.ic_pause_circle_orange);
-                        }
-                    })
                     .addOnPlayClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             btnPlayPause.setBackgroundResource(R.drawable.ic_play_circle_orange);
+                        }
+                    })
+                    .addOnPauseClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnPlayPause.setBackgroundResource(R.drawable.ic_pause_circle_orange);
                         }
                     });
         } else {

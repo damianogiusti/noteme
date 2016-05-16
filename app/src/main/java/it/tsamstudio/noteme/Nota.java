@@ -142,7 +142,7 @@ public class Nota implements Parcelable {
         dest.writeString(image);
         dest.writeString(audio);
         dest.writeLong(creationDate.getTime());
-        dest.writeLong(expireDate.getTime());
+        dest.writeLong((expireDate != null) ? expireDate.getTime() : 0);
     }
 
     Parcelable.Creator<Nota> CREATOR = new ClassLoaderCreator<Nota>() {

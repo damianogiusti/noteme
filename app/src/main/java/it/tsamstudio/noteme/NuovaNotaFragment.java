@@ -254,15 +254,14 @@ public class NuovaNotaFragment extends DialogFragment {
         if (timeProgressSnackbar != null) {
             timeProgressSnackbar.dismiss();
         }
-        mRecorder = setupRecorder();
         Toast.makeText(getContext(), "Registrazione salvata", Toast.LENGTH_SHORT).show();
         setAudioPreview();
     }
 
     private MediaRecorder setupRecorder() {
         MediaRecorder mRecorder = new MediaRecorder();
-
-        audioOutputPath = getContext().getExternalFilesDir("NoteMeAudios") + "/" + (new Date()).getTime() + ".amr";
+        isRecording = false;
+        audioOutputPath = getContext().getExternalFilesDir("NoteMeAudios") + "/" + (new Date()).getTime() + ".3gp";
         Log.d("FILE PATH", audioOutputPath);
 
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -288,7 +287,6 @@ public class NuovaNotaFragment extends DialogFragment {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case NoteMeUtils.MY_PERMISSIONS_REQUEST_RECORD_AUDIO:
-                startRecording();
                 break;
             case NoteMeUtils.MY_PERMISSIONS_REQUEST_STORAGE:
                 break;
