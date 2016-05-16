@@ -38,6 +38,8 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import it.tsamstudio.noteme.utils.NoteMeUtils;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -47,7 +49,7 @@ public class NuovaNotaFragment extends DialogFragment {
     private View dialogView;
     private TextView titolo, etxtNota, titoloAudio;
     private MediaRecorder mRecorder;
-    private String outputFile = null;
+    private String audioOutputPath = null;
     private ImageView immagine, immagineAudio;
     private RelativeLayout relativeLayout;
 
@@ -114,7 +116,7 @@ public class NuovaNotaFragment extends DialogFragment {
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
         immagine = (ImageView) dialogView.findViewById(R.id.imageView);
         immagineAudio = (ImageView) dialogView.findViewById(R.id.imageAudio);
-        titoloAudio = (TextView)dialogView.findViewById(R.id.textAudio);
+        titoloAudio = (TextView) dialogView.findViewById(R.id.textAudio);
 
         titoloAudio.setVisibility(View.GONE);
         immagineAudio.setVisibility(View.GONE);
@@ -198,9 +200,9 @@ public class NuovaNotaFragment extends DialogFragment {
             Nota nota = new Nota();
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
-            if (outputFile != null) {
-                nota.setAudio(outputFile);
-                outputFile = null;
+            if (audioOutputPath != null) {
+                nota.setAudio(audioOutputPath);
+                audioOutputPath = null;
                 Log.d("AUDIO", "audio salvato nella nota");
             }
             nota.setText("" + testoTemp);
@@ -223,16 +225,19 @@ public class NuovaNotaFragment extends DialogFragment {
 
     private void startRecording() {
         try {
-            mRecorder = setupRecorder();
-            mRecorder.prepare();
-            mRecorder.start();
-            isRecording = true;
-            timeProgressSnackbar = Snackbar.make(relativeLayout, getString(R.string.sto_registrando) + " - 00:00", Snackbar.LENGTH_INDEFINITE);
-            timeProgressSnackbar.show();
-            recordingTimer = new Timer();
-            recordingTimer.schedule(createTimerTask(), 1000, 1000);
+            mRecorder = setupRecorderWithPermission();
+            if (mRecorder != null) {
+                mRecorder.prepare();
+                mRecorder.start();
+                isRecording = true;
+                timeProgressSnackbar = Snackbar.make(relativeLayout, getString(R.string.sto_registrando) + " - 00:00", Snackbar.LENGTH_INDEFINITE);
+                timeProgressSnackbar.show();
+                recordingTimer = new Timer();
+                recordingTimer.schedule(createTimerTask(), 1000, 1000);
+            }
         } catch (IOException e) {
             Log.d("AUDIO", "prepare() failed");
+            e.printStackTrace();
             isRecording = false;
         }
     }
@@ -251,47 +256,41 @@ public class NuovaNotaFragment extends DialogFragment {
     }
 
     private MediaRecorder setupRecorder() {
-        isRecording = false;
-
-        // TODO implementare controllo sull'audio
-        /*
-        // Here, thisActivity is the current activity
-        if (ContextCompat.checkSelfPermission(thisActivity,
-                Manifest.permission.READ_CONTACTS)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(thisActivity,
-                    Manifest.permission.READ_CONTACTS)) {
-
-                // Show an expanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-
-            } else {
-
-                // No explanation needed, we can request the permission.
-
-                ActivityCompat.requestPermissions(thisActivity,
-                        new String[]{Manifest.permission.READ_CONTACTS},
-                        MY_PERMISSIONS_REQUEST_READ_CONTACTS);
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            }
-        }
-        */
         MediaRecorder mRecorder = new MediaRecorder();
 
-        outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + (new Date()).getTime() + ".amr";
-        Log.d("FILE PATH", outputFile);
+        audioOutputPath = getContext().getExternalFilesDir("NoteMeAudios") + "/" + (new Date()).getTime() + ".aac";
+        Log.d("FILE PATH", audioOutputPath);
 
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-        mRecorder.setOutputFile(outputFile);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
+        mRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AAC_ADTS);
+        mRecorder.setOutputFile(audioOutputPath);
         return mRecorder;
+    }
+
+    private MediaRecorder setupRecorderWithPermission() {
+        isRecording = false;
+
+        NoteMeUtils.askForPermissions(getActivity());
+
+        if (!NoteMeUtils.needsToAskForPermissions(getActivity())) {
+            return setupRecorder();
+        }
+        return null;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case NoteMeUtils.MY_PERMISSIONS_REQUEST_RECORD_AUDIO:
+                startRecording();
+                break;
+            case NoteMeUtils.MY_PERMISSIONS_REQUEST_STORAGE:
+                break;
+            default:
+                break;
+        }
     }
 
     private TimerTask createTimerTask() {
@@ -357,7 +356,7 @@ public class NuovaNotaFragment extends DialogFragment {
         return image;
     }
 
-    private void setAudioPreview(){
+    private void setAudioPreview() {
         titoloAudio.setVisibility(View.VISIBLE);
         immagineAudio.setVisibility(View.VISIBLE);
         titoloAudio.setText("Nota Audio");

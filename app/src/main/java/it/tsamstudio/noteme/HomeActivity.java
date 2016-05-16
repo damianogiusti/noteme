@@ -24,7 +24,9 @@ import java.util.Date;
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         NuovaNotaFragment.INuovaNota {
+
     private static final String TAG = "HomeActivity";
+    public static final String TAG_DIALOG_NUOVA_NOTA = "dialognuovanota";
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -46,7 +48,7 @@ public class HomeActivity extends AppCompatActivity
                 @Override
                 public void onClick(View view) {
                     NuovaNotaFragment nuovaNotaFragment = NuovaNotaFragment.newInstance();
-                    nuovaNotaFragment.show(getSupportFragmentManager(), "DIALOG");
+                    nuovaNotaFragment.show(getSupportFragmentManager(), TAG_DIALOG_NUOVA_NOTA);
                 }
             });
         }
@@ -77,6 +79,12 @@ public class HomeActivity extends AppCompatActivity
 
         mAdapter = new NotesRecyclerViewAdapter(notesList);
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
