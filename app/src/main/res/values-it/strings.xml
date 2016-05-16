@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="titolo_nuova_nota">titolo</string>
+    <string name="inserisci_testo_qui">inserisci la tua nota</string>
+    <string name="sto_registrando">Sto registrando</string>
+</resources>

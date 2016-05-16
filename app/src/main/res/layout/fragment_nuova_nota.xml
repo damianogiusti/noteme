@@ -4,9 +4,9 @@
     android:layout_height="match_parent"
     tools:context="it.tsamstudio.noteme.NuovaNotaFragment">
 
-        <!--<ScrollView-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"></ScrollView>-->
+        <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"></ScrollView>
 
         <RelativeLayout
             android:id="@+id/relativo"

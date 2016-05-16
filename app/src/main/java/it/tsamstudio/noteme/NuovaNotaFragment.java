@@ -116,7 +116,6 @@ public class NuovaNotaFragment extends DialogFragment {
 
         recordingTimer = new Timer();
         timerTime = new Date(0);
-        mRecorder = setupRecorder();
 
         final AHBottomNavigation bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
         bottomNavigation.setForceTitlesDisplay(false);
@@ -214,10 +213,11 @@ public class NuovaNotaFragment extends DialogFragment {
 
     private void startRecording() {
         try {
+            mRecorder = setupRecorder();
             mRecorder.prepare();
             mRecorder.start();
             isRecording = true;
-            timeProgressSnackbar = Snackbar.make(relativeLayout, "00:00", Snackbar.LENGTH_INDEFINITE);
+            timeProgressSnackbar = Snackbar.make(relativeLayout, getString(R.string.sto_registrando) + " - 00:00", Snackbar.LENGTH_INDEFINITE);
             timeProgressSnackbar.show();
             recordingTimer = new Timer();
             recordingTimer.schedule(createTimerTask(), 1000, 1000);
@@ -266,7 +266,7 @@ public class NuovaNotaFragment extends DialogFragment {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        timeProgressSnackbar.setText(sdf.format(data));
+                        timeProgressSnackbar.setText(getString(R.string.sto_registrando) + " - " + sdf.format(data));
                     }
                 });
             }
