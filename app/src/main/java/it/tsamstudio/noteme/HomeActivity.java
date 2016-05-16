@@ -29,6 +29,7 @@ public class HomeActivity extends AppCompatActivity
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    ArrayList notesList;
 
     private CouchbaseDB database;
     ArrayList<Nota> notesList;
