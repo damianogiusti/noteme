@@ -1,16 +1,17 @@
 package it.tsamstudio.noteme;
 
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import java.util.ArrayList;
 
-/**
- * Created by Reginato James on 12/05/2016.
- */
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
+
 public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecyclerViewAdapter.DataObjectHolder> {
 
     private ArrayList<Nota> mDataset;
@@ -21,12 +22,15 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
             .OnClickListener {
         TextView title;
         TextView content;
+        TextView tag;
+        TextView expirationDate;
 
         public DataObjectHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.noteTitle);
             content = (TextView) itemView.findViewById(R.id.noteContent);
-
+            tag = (TextView) itemView.findViewById(R.id.tag);
+            expirationDate = (TextView) itemView.findViewById(R.id.expireDate);
             itemView.setOnClickListener(this);
         }
 
@@ -58,6 +62,11 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
     public void onBindViewHolder(DataObjectHolder holder, int position) {
         holder.title.setText(mDataset.get(position).getTitle());
         holder.content.setText(mDataset.get(position).getText());
+        holder.tag.setText(mDataset.get(position).getTag());
+        Date d = mDataset.get(position).getExpireDate();
+        SimpleDateFormat sd = new SimpleDateFormat("dd/MM/yy");
+        String date = sd.format(d);
+        holder.expirationDate.setText(date);
     }
 
     public void addItem(Nota dataObj, int index) {

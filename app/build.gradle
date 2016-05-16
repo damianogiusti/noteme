@@ -37,5 +37,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:23.3.0'
     compile 'com.android.support:support-v4:23.3.0'
 //    compile 'com.roughike:bottom-bar:1.3.3'
-    compile 'com.aurelhubert:ahbottomnavigation:1.2.0'
+//    compile 'com.aurelhubert:ahbottomnavigation:1.2.0@aar'
+    compile project(':ahbottomnavigation-release')
+//    compile files('libs/ahbottomnavigation-release.aar')
 }

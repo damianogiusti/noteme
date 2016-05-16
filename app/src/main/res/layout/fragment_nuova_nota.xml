@@ -38,7 +38,6 @@
             android:layout_height="wrap_content"
             android:layout_alignEnd="@+id/etxtTitolo"
             android:layout_alignLeft="@+id/etxtTitolo"
-            android:layout_alignParentBottom="true"
             android:layout_alignRight="@+id/etxtTitolo"
             android:layout_alignStart="@+id/etxtTitolo"
             android:layout_below="@+id/etxtTitolo"
@@ -46,6 +45,14 @@
             android:background="@android:color/transparent"
             android:gravity="start"
             android:hint="@string/inserisci_testo_qui" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/imageView"
+            android:layout_below="@+id/etxtNota"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
 
     </RelativeLayout>
 
