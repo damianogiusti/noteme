@@ -4,9 +4,9 @@
     android:layout_height="match_parent"
     tools:context="it.tsamstudio.noteme.NuovaNotaFragment">
 
-        <!--<ScrollView-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"></ScrollView>-->
+        <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"></ScrollView>
 
         <RelativeLayout
             android:id="@+id/relativo"
@@ -35,7 +35,7 @@
             <EditText
                 android:id="@+id/etxtNota"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="150dp"
                 android:layout_alignEnd="@+id/etxtTitolo"
                 android:layout_alignLeft="@+id/etxtTitolo"
                 android:layout_alignRight="@+id/etxtTitolo"

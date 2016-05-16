@@ -45,7 +45,7 @@ import java.util.TimerTask;
 public class NuovaNotaFragment extends DialogFragment {
 
     private View dialogView;
-    private TextView titolo, nota, titoloAudio;
+    private TextView titolo, etxtNota, titoloAudio;
     private MediaRecorder mRecorder;
     private String outputFile = null;
     private ImageView immagine, immagineAudio;
@@ -81,12 +81,18 @@ public class NuovaNotaFragment extends DialogFragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (activity instanceof INuovaNota) {
-            listener = (INuovaNota)activity;
+            listener = (INuovaNota) activity;
         }
     }
+
 
     @Override
     public void onDetach() {
@@ -104,7 +110,7 @@ public class NuovaNotaFragment extends DialogFragment {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         dialogView = inflater.inflate(R.layout.fragment_nuova_nota, null, false);
         titolo = (TextView) dialogView.findViewById(R.id.etxtTitolo);
-        nota = (TextView) dialogView.findViewById(R.id.etxtNota);
+        etxtNota = (TextView) dialogView.findViewById(R.id.etxtNota);
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
         immagine = (ImageView) dialogView.findViewById(R.id.imageView);
         immagineAudio = (ImageView) dialogView.findViewById(R.id.imageAudio);
@@ -115,7 +121,6 @@ public class NuovaNotaFragment extends DialogFragment {
 
         recordingTimer = new Timer();
         timerTime = new Date(0);
-        mRecorder = setupRecorder();
 
         final AHBottomNavigation bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
         bottomNavigation.setForceTitlesDisplay(false);
@@ -184,21 +189,21 @@ public class NuovaNotaFragment extends DialogFragment {
 
     }
 
-    //metodo chiamato quando viene chiuso il dialog per salvare la nota
+    //metodo chiamato quando viene chiuso il dialog per salvare la etxtNota
     private Nota saveNote() {
-        if (titolo.getText().toString().trim().length() > 0 ||
-                nota.getText().toString().trim().length() > 0) {   //se c'è almeno uno dei parametri
+        String titoloTemp = titolo.getText().toString().trim();
+        String testoTemp = etxtNota.getText().toString().trim();
+
+        if (titoloTemp.length() > 0 || testoTemp.length() > 0) {   //se c'è almeno uno dei parametri
             Nota nota = new Nota();
-            String titoloNota = "Nota senza titolo";
-            if (titolo.getText().length() > 0)
-                titoloNota = "" + titolo.getText();
+            String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
-            nota.setText("" + nota.getText());
             if (outputFile != null) {
                 nota.setAudio(outputFile);
                 outputFile = null;
                 Log.d("AUDIO", "audio salvato nella nota");
             }
+            nota.setText("" + testoTemp);
             nota.setCreationDate(new Date());
             CouchbaseDB db = new CouchbaseDB(getContext());
             try {
@@ -218,10 +223,11 @@ public class NuovaNotaFragment extends DialogFragment {
 
     private void startRecording() {
         try {
+            mRecorder = setupRecorder();
             mRecorder.prepare();
             mRecorder.start();
             isRecording = true;
-            timeProgressSnackbar = Snackbar.make(relativeLayout, "00:00", Snackbar.LENGTH_INDEFINITE);
+            timeProgressSnackbar = Snackbar.make(relativeLayout, getString(R.string.sto_registrando) + " - 00:00", Snackbar.LENGTH_INDEFINITE);
             timeProgressSnackbar.show();
             recordingTimer = new Timer();
             recordingTimer.schedule(createTimerTask(), 1000, 1000);
@@ -264,13 +270,14 @@ public class NuovaNotaFragment extends DialogFragment {
         return new TimerTask() {
             private Date data = new Date(0);
             private SimpleDateFormat sdf = new SimpleDateFormat("mm:ss");
+
             @Override
             public void run() {
                 data.setTime(data.getTime() + 1000);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        timeProgressSnackbar.setText(sdf.format(data));
+                        timeProgressSnackbar.setText(getString(R.string.sto_registrando) + " - " + sdf.format(data));
                     }
                 });
             }
