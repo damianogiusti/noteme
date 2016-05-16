@@ -6,38 +6,36 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
+import com.aurelhubert.ahbottomnavigation.AHClickListener;
 import com.couchbase.lite.CouchbaseLiteException;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
-
-import com.aurelhubert.ahbottomnavigation.AHClickListener;
-
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 /**
@@ -50,6 +48,11 @@ public class NuovaNotaFragment extends DialogFragment {
     private MediaRecorder mRecorder;
     private String outputFile;
     private ImageView immagine;
+    private RelativeLayout relativeLayout;
+
+    private Snackbar timeProgressSnackbar;
+    private Timer recordingTimer;
+    private Date timerTime;
 
     private boolean isRecording;
 
@@ -65,14 +68,8 @@ public class NuovaNotaFragment extends DialogFragment {
         return nuovaNotaFragment;
     }
 
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
-    @Override
-    public void onDetach(){
+    public void onDetach() {
         super.onDetach();
         saveNote();
 
@@ -86,22 +83,14 @@ public class NuovaNotaFragment extends DialogFragment {
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
         dialogView = inflater.inflate(R.layout.fragment_nuova_nota, null, false);
-        titolo = (TextView)dialogView.findViewById(R.id.etxtTitolo);
-        nota = (TextView)dialogView.findViewById(R.id.etxtNota);
+        titolo = (TextView) dialogView.findViewById(R.id.etxtTitolo);
+        nota = (TextView) dialogView.findViewById(R.id.etxtNota);
+        relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
+        immagine = (ImageView) dialogView.findViewById(R.id.imageView);
 
-        immagine = (ImageView)dialogView.findViewById(R.id.imageView);
-
-        isRecording = false;
-
-        mRecorder = new MediaRecorder();
-
-        outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + new Date() + ".3gp";
-        Log.d("FILE PATH", outputFile);
-
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-        mRecorder.setOutputFile(outputFile);
+        recordingTimer = new Timer();
+        timerTime = new Date(0);
+        mRecorder = setupRecorder();
 
         final AHBottomNavigation bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
         bottomNavigation.setForceTitlesDisplay(false);
@@ -129,12 +118,10 @@ public class NuovaNotaFragment extends DialogFragment {
             @Override
             public boolean onLongClickListener(View view) {
                 Log.d("onLongPress", "" + bottomNavigation.getCurrentItem());
-                if (!isRecording){
+                if (!isRecording) {
                     startRecording();
-                    isRecording = true;
-                } else{
+                } else {
                     stopRecording();
-                    isRecording = false;
                 }
                 return true;
             }
@@ -166,24 +153,6 @@ public class NuovaNotaFragment extends DialogFragment {
         return dialog;
     }
 
-    /*
-        private BottomBar setupBottomBar(View view, Bundle savedInstanceState) {
-            BottomBar bottomBar = BottomBar.attach(view, savedInstanceState);
-            bottomBar.setItemsFromMenu(R.menu.bottom_bar_menu, new OnMenuTabClickListener() {
-                @Override
-                public void onMenuTabSelected(int menuItemId) {
-                    // TODO switch
-                }
-
-                @Override
-                public void onMenuTabReSelected(int menuItemId) {
-
-                }
-            });
-
-            return bottomBar;
-        }
-    */
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -191,7 +160,7 @@ public class NuovaNotaFragment extends DialogFragment {
     }
 
     //metodo chiamato quando viene chiuso il dialog per salvare la nota
-    private Nota saveNote(){
+    private Nota saveNote() {
         if (titolo.getText().length() > 0 || nota.getText().length() > 0) {   //se c'è almeno uno dei parametri
             Nota nota = new Nota();
             String titoloNota = "Nota senza titolo";
@@ -209,7 +178,7 @@ public class NuovaNotaFragment extends DialogFragment {
                 e.printStackTrace();
             }
             return nota;
-        } else{
+        } else {
             Toast.makeText(getContext(), "Nota non salvata", Toast.LENGTH_SHORT).show();
         }
         return null;
@@ -219,19 +188,60 @@ public class NuovaNotaFragment extends DialogFragment {
         try {
             mRecorder.prepare();
             mRecorder.start();
+            isRecording = true;
+            timeProgressSnackbar = Snackbar.make(relativeLayout, "00:00", Snackbar.LENGTH_INDEFINITE);
+            timeProgressSnackbar.show();
+            recordingTimer.schedule(createTimerTask(), 1000, 1000);
         } catch (IOException e) {
             Log.d("AUDIO", "prepare() failed");
+            isRecording = false;
         }
-        Toast.makeText(getContext(), "In registrazione...", Toast.LENGTH_SHORT).show();
     }
 
     private void stopRecording() {
         mRecorder.stop();
         mRecorder.release();
-        mRecorder = null;
+        isRecording = false;
+        recordingTimer.cancel();
+        if (timeProgressSnackbar != null) {
+            timeProgressSnackbar.dismiss();
+        }
+        mRecorder = setupRecorder();
         Toast.makeText(getContext(), "Registrazione salvata", Toast.LENGTH_SHORT).show();
     }
 
+    private MediaRecorder setupRecorder() {
+        isRecording = false;
+
+        MediaRecorder mRecorder = new MediaRecorder();
+
+        outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + (new Date()).getTime() + ".amr";
+        Log.d("FILE PATH", outputFile);
+
+        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+        mRecorder.setOutputFile(outputFile);
+        return mRecorder;
+    }
+
+    private TimerTask createTimerTask() {
+        final Handler handler = new Handler();
+        return new TimerTask() {
+            private Date data = new Date(0);
+            private SimpleDateFormat sdf = new SimpleDateFormat("mm:ss");
+            @Override
+            public void run() {
+                data.setTime(data.getTime() + 1000);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        timeProgressSnackbar.setText(sdf.format(data));
+                    }
+                });
+            }
+        };
+    }
 
     private static final int CAMERA_REQUEST = 1888;
     private String mCurrentPhotoPath;

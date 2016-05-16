@@ -27,6 +27,7 @@ public class HomeActivity extends AppCompatActivity
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    ArrayList notesList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +41,7 @@ public class HomeActivity extends AppCompatActivity
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    NuovaNotaFragment nuovaNotaFragment =NuovaNotaFragment.newInstance();
+                    NuovaNotaFragment nuovaNotaFragment = NuovaNotaFragment.newInstance();
                     nuovaNotaFragment.show(getSupportFragmentManager(), "DIALOG");
                 }
             });
@@ -129,13 +130,18 @@ public class HomeActivity extends AppCompatActivity
             @Override
             public void onItemClick(int position, View v) {
                 Log.d("DEBUG CLICK NOTA", "NOTA PREMUTA:" + position);
+                Nota n = (Nota) notesList.get(position);
+                String t = n.getTitle();
+                String cont = n.getText();
+                MostraNotaFragment fragmentMostraNota = MostraNotaFragment.newInstance(t, cont);
+                fragmentMostraNota.show(getSupportFragmentManager(), "DIALOG");
             }
         });
     }
 
     //metodo per creare note a caso (per testare)
     private ArrayList<Nota> getDataSet() {
-        ArrayList results = new ArrayList<Nota>();
+        notesList = new ArrayList<Nota>();
 
         for (int index = 0; index < 20; index++) {
             Nota note = new Nota();
@@ -148,12 +154,12 @@ public class HomeActivity extends AppCompatActivity
 
             note.setTag("family");
             note.setExpireDate(new Date());
-            results.add(index, note);
+            notesList.add(index, note);
         }
         /*CouchbaseDB db = new CouchbaseDB(getApplicationContext());
          *note = db.leggiNote()
         * */
-        return results;
+        return notesList;
     }
 
 }
