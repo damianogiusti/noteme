@@ -29,8 +29,9 @@ public class HomeActivity extends AppCompatActivity
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+
     private CouchbaseDB database;
-    ArrayList<Nota> notas;
+    ArrayList<Nota> notesList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,16 +66,16 @@ public class HomeActivity extends AppCompatActivity
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         database = new CouchbaseDB(getApplicationContext());
-        notas = new ArrayList<>();
+        notesList = new ArrayList<>();
         try {
-            notas = database.leggiNote();
+            notesList = database.leggiNote();
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        mAdapter = new NotesRecyclerViewAdapter(notas);
+        mAdapter = new NotesRecyclerViewAdapter(notesList);
         mRecyclerView.setAdapter(mAdapter);
     }
 
@@ -144,13 +145,18 @@ public class HomeActivity extends AppCompatActivity
             @Override
             public void onItemClick(int position, View v) {
                 Log.d("DEBUG CLICK NOTA", "NOTA PREMUTA:" + position);
+                Nota n = (Nota) notesList.get(position);
+                String t = n.getTitle();
+                String cont = n.getText();
+                MostraNotaFragment fragmentMostraNota = MostraNotaFragment.newInstance(t, cont);
+                fragmentMostraNota.show(getSupportFragmentManager(), "DIALOG");
             }
         });
     }
 
     //metodo per creare note a caso (per testare)
     private ArrayList<Nota> getDataSet() {
-        ArrayList results = new ArrayList<Nota>();
+        notesList = new ArrayList<Nota>();
 
         for (int index = 0; index < 20; index++) {
             Nota note = new Nota();
@@ -163,18 +169,18 @@ public class HomeActivity extends AppCompatActivity
 
             note.setTag("family");
             note.setExpireDate(new Date());
-            results.add(index, note);
+            notesList.add(index, note);
         }
         /*CouchbaseDB db = new CouchbaseDB(getApplicationContext());
          *note = db.leggiNote()
         * */
-        return results;
+        return notesList;
     }
 
     @Override
     public void onNuovaNotaAggiunta(Nota nota) {
-        notas.add(nota);
-        mAdapter = new NotesRecyclerViewAdapter(notas);
+        notesList.add(nota);
+        mAdapter = new NotesRecyclerViewAdapter(notesList);
         mRecyclerView.setAdapter(mAdapter);
     }
 }
