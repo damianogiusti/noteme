@@ -48,6 +48,13 @@
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true" />
 
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/micImgView"
+                android:layout_below="@+id/expireDate"
+                android:layout_marginTop="5dp"/>
+
         </RelativeLayout>
     </android.support.v7.widget.CardView>
 
