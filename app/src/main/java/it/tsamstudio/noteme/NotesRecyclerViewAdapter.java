@@ -1,6 +1,5 @@
 package it.tsamstudio.noteme;
 
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -63,7 +62,7 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         holder.title.setText(mDataset.get(position).getTitle());
         holder.content.setText(mDataset.get(position).getText());
         holder.tag.setText(mDataset.get(position).getTag());
-        Date d = mDataset.get(position).getExpireDate();
+        Date d = mDataset.get(position).getCreationDate();
         SimpleDateFormat sd = new SimpleDateFormat("dd/MM/yy");
         String date = sd.format(d);
         holder.expirationDate.setText(date);

@@ -1,6 +1,7 @@
 package it.tsamstudio.noteme;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
@@ -56,6 +57,17 @@ public class NuovaNotaFragment extends DialogFragment {
 
     private boolean isRecording;
 
+    INuovaNota listener = new INuovaNota() {
+        @Override
+        public void onNuovaNotaAggiunta(Nota nota) {
+            Log.d("onNuovaNotaAggiunta", "dummy init");
+        }
+    };
+
+    public interface INuovaNota {
+        void onNuovaNotaAggiunta(Nota nota);
+    }
+
     public NuovaNotaFragment() {
         // Required empty public constructor
     }
@@ -69,9 +81,17 @@ public class NuovaNotaFragment extends DialogFragment {
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof INuovaNota) {
+            listener = (INuovaNota)activity;
+        }
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
-        saveNote();
+        listener.onNuovaNotaAggiunta(saveNote());
 
         Log.d("DETACH", "onDETACH");
     }
@@ -161,13 +181,15 @@ public class NuovaNotaFragment extends DialogFragment {
 
     //metodo chiamato quando viene chiuso il dialog per salvare la nota
     private Nota saveNote() {
-        if (titolo.getText().length() > 0 || nota.getText().length() > 0) {   //se c'è almeno uno dei parametri
+        if (titolo.getText().toString().trim().length() > 0 ||
+                nota.getText().toString().trim().length() > 0) {   //se c'è almeno uno dei parametri
             Nota nota = new Nota();
             String titoloNota = "Nota senza titolo";
             if (titolo.getText().length() > 0)
                 titoloNota = "" + titolo.getText();
             nota.setTitle("" + titoloNota);
             nota.setText("" + nota.getText());
+            nota.setCreationDate(new Date());
             CouchbaseDB db = new CouchbaseDB(getContext());
             try {
                 db.salvaNota(nota);
@@ -191,6 +213,7 @@ public class NuovaNotaFragment extends DialogFragment {
             isRecording = true;
             timeProgressSnackbar = Snackbar.make(relativeLayout, "00:00", Snackbar.LENGTH_INDEFINITE);
             timeProgressSnackbar.show();
+            recordingTimer = new Timer();
             recordingTimer.schedule(createTimerTask(), 1000, 1000);
         } catch (IOException e) {
             Log.d("AUDIO", "prepare() failed");

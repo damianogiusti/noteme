@@ -7,7 +7,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -16,17 +15,22 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import java.text.SimpleDateFormat;
+import com.couchbase.lite.CouchbaseLiteException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        NuovaNotaFragment.INuovaNota {
     private static final String TAG = "HomeActivity";
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    private CouchbaseDB database;
+    ArrayList<Nota> notas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +44,7 @@ public class HomeActivity extends AppCompatActivity
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    NuovaNotaFragment nuovaNotaFragment =NuovaNotaFragment.newInstance();
+                    NuovaNotaFragment nuovaNotaFragment = NuovaNotaFragment.newInstance();
                     nuovaNotaFragment.show(getSupportFragmentManager(), "DIALOG");
                 }
             });
@@ -59,7 +63,18 @@ public class HomeActivity extends AppCompatActivity
         //mLayoutManager = new GridLayoutManager(getApplicationContext(), 2);
         mLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new NotesRecyclerViewAdapter(getDataSet());
+
+        database = new CouchbaseDB(getApplicationContext());
+        notas = new ArrayList<>();
+        try {
+            notas = database.leggiNote();
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mAdapter = new NotesRecyclerViewAdapter(notas);
         mRecyclerView.setAdapter(mAdapter);
     }
 
@@ -140,9 +155,9 @@ public class HomeActivity extends AppCompatActivity
         for (int index = 0; index < 20; index++) {
             Nota note = new Nota();
             note.setTitle("TITOLONE " + index);
-            if(index %2 == 0){
+            if (index % 2 == 0) {
                 note.setText("robe a caso per debug, numero: " + index);
-            }else{
+            } else {
                 note.setText("robe a caso per debug, lorem ipsum darem sit dolor amet vamos alla playa ritmo de las noce: " + index);
             }
 
@@ -156,4 +171,10 @@ public class HomeActivity extends AppCompatActivity
         return results;
     }
 
+    @Override
+    public void onNuovaNotaAggiunta(Nota nota) {
+        notas.add(nota);
+        mAdapter = new NotesRecyclerViewAdapter(notas);
+        mRecyclerView.setAdapter(mAdapter);
+    }
 }
