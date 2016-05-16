@@ -1,9 +1,15 @@
 package it.tsamstudio.noteme;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -23,6 +29,7 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         TextView content;
         TextView tag;
         TextView expirationDate;
+        ImageView micImg;
 
         public DataObjectHolder(View itemView) {
             super(itemView);
@@ -30,6 +37,7 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
             content = (TextView) itemView.findViewById(R.id.noteContent);
             tag = (TextView) itemView.findViewById(R.id.tag);
             expirationDate = (TextView) itemView.findViewById(R.id.expireDate);
+            micImg = (ImageView) itemView.findViewById(R.id.micImgView);
             itemView.setOnClickListener(this);
         }
 
@@ -66,6 +74,10 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         SimpleDateFormat sd = new SimpleDateFormat("dd/MM/yy");
         String date = sd.format(d);
         holder.expirationDate.setText(date);
+
+        if(mDataset.get(position).getAudio() != null){
+           holder.micImg.setBackgroundResource(R.drawable.ic_mic);
+        }
     }
 
     public void addItem(Nota dataObj, int index) {
