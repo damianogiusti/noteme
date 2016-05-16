@@ -156,7 +156,7 @@ public class HomeActivity extends AppCompatActivity
                 Nota n = (Nota) notesList.get(position);
                 String t = n.getTitle();
                 String cont = n.getText();
-                MostraNotaFragment fragmentMostraNota = MostraNotaFragment.newInstance(t, cont);
+                MostraNotaFragment fragmentMostraNota = MostraNotaFragment.newInstance(n);
                 fragmentMostraNota.show(getSupportFragmentManager(), "DIALOG");
             }
         });

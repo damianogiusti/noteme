@@ -1,5 +1,8 @@
 package it.tsamstudio.noteme;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Date;
 import java.util.UUID;
 
@@ -12,7 +15,7 @@ class MalformedHexColorException extends RuntimeException {
 /**
  * Created by adamo on 11/05/2016.
  */
-public class Nota {
+public class Nota implements Parcelable {
 
     private static final String TAG = "Nota";
 
@@ -122,5 +125,52 @@ public class Nota {
         this.expireDate = expireDate;
     }
 
+    // parte per la parcellizzazione
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(title);
+        dest.writeString(color);
+        dest.writeString(tag);
+        dest.writeString(text);
+        dest.writeString(image);
+        dest.writeString(audio);
+        dest.writeLong(creationDate.getTime());
+        dest.writeLong(expireDate.getTime());
+    }
+
+    Parcelable.Creator<Nota> CREATOR = new ClassLoaderCreator<Nota>() {
+        @Override
+        public Nota createFromParcel(Parcel source, ClassLoader loader) {
+            return new Nota(source);
+        }
+
+        @Override
+        public Nota createFromParcel(Parcel source) {
+            return new Nota(source);
+        }
+
+        @Override
+        public Nota[] newArray(int size) {
+            return new Nota[size];
+        }
+    };
+
+    private Nota(Parcel in) {
+        id = in.readString();
+        title = in.readString();
+        color = in.readString();
+        tag = in.readString();
+        text = in.readString();
+        image = in.readString();
+        audio = in.readString();
+        creationDate = new Date(in.readLong());
+        expireDate = new Date(in.readLong());
+    }
 }

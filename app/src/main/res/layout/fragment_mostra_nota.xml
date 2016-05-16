@@ -12,7 +12,7 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin">
 
-        <TextView
+        <EditText
             android:id="@+id/txtTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -24,9 +24,10 @@
             android:background="@android:color/transparent"
             android:capitalize="sentences"
             android:gravity="center_horizontal"
+            android:text="titolo"
             android:textStyle="bold" />
 
-        <TextView
+        <EditText
             android:id="@+id/txtContent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -36,7 +37,62 @@
             android:layout_alignStart="@+id/txtTitle"
             android:layout_below="@+id/txtTitle"
             android:layout_marginTop="5dp"
-            android:background="@android:color/transparent" />
+            android:background="@android:color/transparent"
+            android:capitalize="sentences"
+            android:text="contenuto" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:orientation="horizontal">
+
+            <RelativeLayout
+                android:id="@+id/audioPlayerLayout"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_weight="1"
+                android:padding="7dp">
+
+                <SeekBar
+                    android:id="@+id/seekbarTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@+id/btnPlayPause"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignStart="@+id/btnPlayPause" />
+
+                <ImageButton
+                    android:id="@+id/btnPlayPause"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:background="@drawable/ic_play_circle_orange" />
+
+                <TextView
+                    android:id="@+id/txtTimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignEnd="@+id/seekbarTime"
+                    android:layout_alignRight="@+id/seekbarTime"
+                    android:layout_centerVertical="true"
+                    android:layout_marginRight="10dp"
+                    android:text="mm:ss" />
+            </RelativeLayout>
+
+            <ImageView
+                android:id="@+id/imgThumbnail"
+                android:layout_width="50dp"
+                android:layout_height="70dp"
+                android:layout_weight="0.12" />
+        </LinearLayout>
+
 
     </RelativeLayout>
 

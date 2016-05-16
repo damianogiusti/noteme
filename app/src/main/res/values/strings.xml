@@ -11,4 +11,5 @@
     <string name="titolo_nuova_nota">title</string>
     <string name="inserisci_testo_qui">your note here</string>
     <string name="sto_registrando">I\'m recording</string>
+    <string name="audio">Audio</string>
 </resources>

@@ -3,15 +3,29 @@ package it.tsamstudio.noteme;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
+
+import java.io.File;
+import java.io.FileInputStream;
+
+import nl.changer.audiowife.AudioWife;
 
 
 /**
@@ -19,22 +33,29 @@ import android.widget.TextView;
  */
 public class MostraNotaFragment extends DialogFragment {
 
-    private View dialogNoteView;
-    private TextView txtTitle, txtContent;
-    private String title, content;
+    private static final String TAG = "MostraNotaFragment";
 
-    private final static String TITOLO = "title";
-    private final static String CONTENUTO = "content";
+    private View dialogNoteView;
+    private EditText txtTitle, txtContent;
+    private Nota nota;
+
+    // player audio
+    private ImageButton btnPlayPause;
+    private SeekBar seekbarTime;
+    private TextView txtTimer;
+    // anteprima immagine
+    private ImageView imgThumbnail;
+
+    private final static String NOTA_KEY_FOR_BUNDLE = "notaParceable";
 
     public MostraNotaFragment() {
         // Required empty public constructor
     }
 
-    public static MostraNotaFragment newInstance(String title, String content) {
+    public static MostraNotaFragment newInstance(Nota nota) {
         MostraNotaFragment mostraNotaFragment = new MostraNotaFragment();
         Bundle bundle = new Bundle();
-        bundle.putString(TITOLO, title);
-        bundle.putString(CONTENUTO, content);
+        bundle.putParcelable(NOTA_KEY_FOR_BUNDLE, nota);
         mostraNotaFragment.setArguments(bundle);
         return mostraNotaFragment;
     }
@@ -53,15 +74,59 @@ public class MostraNotaFragment extends DialogFragment {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         dialogNoteView = inflater.inflate(R.layout.fragment_mostra_nota, null, false);
 
-        txtTitle = (TextView) dialogNoteView.findViewById(R.id.txtTitle);
-        txtContent = (TextView) dialogNoteView.findViewById(R.id.txtContent);
-
         Bundle dBundle = getArguments();
-        title = dBundle.getString(TITOLO);
-        content = dBundle.getString(CONTENUTO);
+        nota = dBundle.getParcelable(NOTA_KEY_FOR_BUNDLE);
 
-        txtTitle.setText(title);
-        txtContent.setText(content);
+        txtTitle = (EditText) dialogNoteView.findViewById(R.id.txtTitle);
+        txtContent = (EditText) dialogNoteView.findViewById(R.id.txtContent);
+
+        txtTitle.setText(nota.getTitle());
+        txtContent.setText(nota.getText());
+
+        // se ho una nota audio do la possibilita di riprodurla, altrimenti non mostro il player
+        RelativeLayout audioPlayerLayout = (RelativeLayout) dialogNoteView.findViewById(R.id.audioPlayerLayout);
+        if (nota.getAudio() != null) {
+
+            btnPlayPause = (ImageButton) dialogNoteView.findViewById(R.id.btnPlayPause);
+            seekbarTime = (SeekBar) dialogNoteView.findViewById(R.id.seekbarTime);
+            txtTimer = (TextView) dialogNoteView.findViewById(R.id.txtTimer);
+
+            Log.d(TAG, nota.getAudio());
+            Log.d(TAG, getActivity().getExternalFilesDir("NoteMeAudios").getAbsolutePath());
+            File file = new File(nota.getAudio());
+            FileInputStream fileInputStream = new FileInputStream(file);
+            AudioWife.getInstance()
+                    .init(getContext(), fileInputStream.getFD().)
+                    .setPlayView(btnPlayPause)
+                    .setPauseView(btnPlayPause)
+                    .setSeekBar(seekbarTime)
+                    .setRuntimeView(txtTimer)
+                    .addOnPauseClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnPlayPause.setBackgroundResource(R.drawable.ic_pause_circle_orange);
+                        }
+                    })
+                    .addOnPlayClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnPlayPause.setBackgroundResource(R.drawable.ic_play_circle_orange);
+                        }
+                    });
+        } else {
+            audioPlayerLayout.setVisibility(View.GONE);
+        }
+
+        // se ho una nota con immagine mostro l'immagine, altrimenti non mostro nulla
+        imgThumbnail = (ImageView) dialogNoteView.findViewById(R.id.imgThumbnail);
+        if (nota.getImage() != null) {
+            Picasso.with(getContext())
+                    .load(nota.getImage())
+                    .fit()
+                    .into(imgThumbnail);
+        } else {
+            imgThumbnail.setVisibility(View.GONE);
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogNoteView);

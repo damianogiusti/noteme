@@ -50,6 +50,7 @@ public class NuovaNotaFragment extends DialogFragment {
     private TextView titolo, etxtNota, titoloAudio;
     private MediaRecorder mRecorder;
     private String audioOutputPath = null;
+    private String imageOutputPath;
     private ImageView immagine, immagineAudio;
     private RelativeLayout relativeLayout;
 
@@ -200,13 +201,16 @@ public class NuovaNotaFragment extends DialogFragment {
             Nota nota = new Nota();
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
-            if (audioOutputPath != null) {
+            /*if (audioOutputPath != null) {
                 nota.setAudio(audioOutputPath);
                 audioOutputPath = null;
                 Log.d("AUDIO", "audio salvato nella nota");
-            }
+            }*/
             nota.setText("" + testoTemp);
             nota.setCreationDate(new Date());
+            nota.setAudio(audioOutputPath);
+            nota.setImage(imageOutputPath);
+
             CouchbaseDB db = new CouchbaseDB(getContext());
             try {
                 db.salvaNota(nota);
@@ -258,12 +262,12 @@ public class NuovaNotaFragment extends DialogFragment {
     private MediaRecorder setupRecorder() {
         MediaRecorder mRecorder = new MediaRecorder();
 
-        audioOutputPath = getContext().getExternalFilesDir("NoteMeAudios") + "/" + (new Date()).getTime() + ".aac";
+        audioOutputPath = getContext().getExternalFilesDir("NoteMeAudios") + "/" + (new Date()).getTime() + ".amr";
         Log.d("FILE PATH", audioOutputPath);
 
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
-        mRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AAC_ADTS);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
         mRecorder.setOutputFile(audioOutputPath);
         return mRecorder;
     }
@@ -313,7 +317,6 @@ public class NuovaNotaFragment extends DialogFragment {
     }
 
     private static final int CAMERA_REQUEST = 1888;
-    private String mCurrentPhotoPath;
 
     public void takeImageFromCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -321,6 +324,7 @@ public class NuovaNotaFragment extends DialogFragment {
         try {
             photoFile = createImageFile();
         } catch (IOException ex) {
+            ex.printStackTrace();
             // Error occurred while creating the File
         }
         // Continue only if the File was successfully created
@@ -336,7 +340,7 @@ public class NuovaNotaFragment extends DialogFragment {
         if (requestCode == CAMERA_REQUEST) {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-            Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, options);
+            Bitmap bitmap = BitmapFactory.decodeFile(imageOutputPath, options);
             immagine.setImageBitmap(bitmap);
         }
     }
@@ -344,7 +348,7 @@ public class NuovaNotaFragment extends DialogFragment {
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
+        File storageDir = getActivity().getExternalFilesDir(
                 Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
@@ -352,14 +356,14 @@ public class NuovaNotaFragment extends DialogFragment {
                 storageDir      /* directory */
         );
 
-        mCurrentPhotoPath = image.getAbsolutePath();
+        imageOutputPath = image.getAbsolutePath();
         return image;
     }
 
     private void setAudioPreview() {
         titoloAudio.setVisibility(View.VISIBLE);
         immagineAudio.setVisibility(View.VISIBLE);
-        titoloAudio.setText("Nota Audio");
+        titoloAudio.setText(getString(R.string.audio));
         immagineAudio.setImageResource(R.drawable.ic_volume_up_24dp);
     }
 
