@@ -1,10 +1,5 @@
 package it.tsamstudio.noteme;
 
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -75,8 +70,8 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         String date = sd.format(d);
         holder.expirationDate.setText(date);
 
-        if(mDataset.get(position).getAudio() != null){
-           holder.micImg.setBackgroundResource(R.drawable.ic_mic);
+        if (mDataset.get(position).getAudio() != null) {
+            holder.micImg.setImageResource(R.drawable.ic_mic_card);
         }
     }
 

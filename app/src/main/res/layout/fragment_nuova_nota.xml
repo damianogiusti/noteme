@@ -4,92 +4,92 @@
     android:layout_height="match_parent"
     tools:context="it.tsamstudio.noteme.NuovaNotaFragment">
 
-        <ScrollView
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"></ScrollView>
 
-        <RelativeLayout
-            android:id="@+id/relativo"
-            android:layout_width="315dp"
-            android:layout_height="315dp"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin">
+    <RelativeLayout
+        android:id="@+id/relativo"
+        android:layout_width="315dp"
+        android:layout_height="315dp"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin">
 
-            <EditText
-                android:id="@+id/etxtTitolo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:background="@android:color/transparent"
-                android:capitalize="sentences"
-                android:gravity="center_horizontal"
-                android:hint="@string/titolo_nuova_nota"
-                android:maxLength="30"
-                android:textStyle="bold" />
+        <EditText
+            android:id="@+id/etxtTitolo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@android:color/transparent"
+            android:capitalize="sentences"
+            android:gravity="center_horizontal"
+            android:hint="@string/titolo_nuova_nota"
+            android:maxLength="30"
+            android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/etxtNota"
-                android:layout_width="wrap_content"
-                android:layout_height="150dp"
-                android:layout_alignEnd="@+id/etxtTitolo"
-                android:layout_alignLeft="@+id/etxtTitolo"
-                android:layout_alignRight="@+id/etxtTitolo"
-                android:layout_alignStart="@+id/etxtTitolo"
-                android:layout_below="@+id/etxtTitolo"
-                android:layout_marginTop="5dp"
-                android:background="@android:color/transparent"
-                android:gravity="start"
-                android:hint="@string/inserisci_testo_qui"
-                android:layout_centerVertical="true" />
+        <EditText
+            android:id="@+id/etxtNota"
+            android:layout_width="wrap_content"
+            android:layout_height="150dp"
+            android:layout_alignEnd="@+id/etxtTitolo"
+            android:layout_alignLeft="@+id/etxtTitolo"
+            android:layout_alignRight="@+id/etxtTitolo"
+            android:layout_alignStart="@+id/etxtTitolo"
+            android:layout_below="@+id/etxtTitolo"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="5dp"
+            android:background="@android:color/transparent"
+            android:gravity="start"
+            android:hint="@string/inserisci_testo_qui" />
 
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/audio"
-                android:layout_marginBottom="56dp"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true">
-
-                <ImageView
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:id="@+id/imageAudio"
-                    android:layout_alignTop="@+id/textAudio"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:id="@+id/textAudio"
-                    android:layout_below="@+id/etxtNota"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_toRightOf="@+id/imageAudio"
-                    android:layout_toEndOf="@+id/imageAudio"
-                    android:gravity="center_vertical" />
-            </LinearLayout>
-
-        </RelativeLayout>
-
-        <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
-            android:id="@+id/bottomNavigation"
+        <LinearLayout
+            android:id="@+id/audio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_below="@+id/relativo"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true">
+            android:layout_alignParentStart="true"
+            android:layout_marginBottom="56dp"
+            android:orientation="horizontal">
 
-        </com.aurelhubert.ahbottomnavigation.AHBottomNavigation>
+            <ImageView
+                android:id="@+id/imageAudio"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignTop="@+id/textAudio" />
+
+            <TextView
+                android:id="@+id/textAudio"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/etxtNota"
+                android:layout_toEndOf="@+id/imageAudio"
+                android:layout_toRightOf="@+id/imageAudio"
+                android:gravity="center_vertical"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/relativo"
+        android:layout_gravity="bottom">
+
+    </com.aurelhubert.ahbottomnavigation.AHBottomNavigation>
 
 </android.support.design.widget.CoordinatorLayout>
 
