@@ -45,10 +45,10 @@ import java.util.TimerTask;
 public class NuovaNotaFragment extends DialogFragment {
 
     private View dialogView;
-    private TextView titolo, nota;
+    private TextView titolo, nota, titoloAudio;
     private MediaRecorder mRecorder;
-    private String outputFile;
-    private ImageView immagine;
+    private String outputFile = null;
+    private ImageView immagine, immagineAudio;
     private RelativeLayout relativeLayout;
 
     private Snackbar timeProgressSnackbar;
@@ -107,6 +107,11 @@ public class NuovaNotaFragment extends DialogFragment {
         nota = (TextView) dialogView.findViewById(R.id.etxtNota);
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
         immagine = (ImageView) dialogView.findViewById(R.id.imageView);
+        immagineAudio = (ImageView) dialogView.findViewById(R.id.imageAudio);
+        titoloAudio = (TextView)dialogView.findViewById(R.id.textAudio);
+
+        titoloAudio.setVisibility(View.GONE);
+        immagineAudio.setVisibility(View.GONE);
 
         recordingTimer = new Timer();
         timerTime = new Date(0);
@@ -189,6 +194,11 @@ public class NuovaNotaFragment extends DialogFragment {
                 titoloNota = "" + titolo.getText();
             nota.setTitle("" + titoloNota);
             nota.setText("" + nota.getText());
+            if (outputFile != null) {
+                nota.setAudio(outputFile);
+                outputFile = null;
+                Log.d("AUDIO", "audio salvato nella nota");
+            }
             nota.setCreationDate(new Date());
             CouchbaseDB db = new CouchbaseDB(getContext());
             try {
@@ -231,6 +241,7 @@ public class NuovaNotaFragment extends DialogFragment {
         }
         mRecorder = setupRecorder();
         Toast.makeText(getContext(), "Registrazione salvata", Toast.LENGTH_SHORT).show();
+        setAudioPreview();
     }
 
     private MediaRecorder setupRecorder() {
@@ -308,6 +319,13 @@ public class NuovaNotaFragment extends DialogFragment {
 
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
+    }
+
+    private void setAudioPreview(){
+        titoloAudio.setVisibility(View.VISIBLE);
+        immagineAudio.setVisibility(View.VISIBLE);
+        titoloAudio.setText("Nota Audio");
+        immagineAudio.setImageResource(R.drawable.ic_volume_up_24dp);
     }
 
 }

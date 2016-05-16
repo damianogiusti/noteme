@@ -44,15 +44,39 @@
                 android:layout_marginTop="5dp"
                 android:background="@android:color/transparent"
                 android:gravity="start"
-                android:hint="@string/inserisci_testo_qui" />
+                android:hint="@string/inserisci_testo_qui"
+                android:layout_centerVertical="true" />
 
-            <ImageView
-                android:id="@+id/imageView"
+            <LinearLayout
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/audio"
+                android:layout_marginBottom="56dp"
+                android:layout_alignParentBottom="true"
                 android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/etxtNota" />
+                android:layout_alignParentStart="true">
+
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:id="@+id/imageAudio"
+                    android:layout_alignTop="@+id/textAudio"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:id="@+id/textAudio"
+                    android:layout_below="@+id/etxtNota"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_toRightOf="@+id/imageAudio"
+                    android:layout_toEndOf="@+id/imageAudio"
+                    android:gravity="center_vertical" />
+            </LinearLayout>
 
         </RelativeLayout>
 
@@ -61,8 +85,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_alignBottom="@+id/relativo"
-            android:layout_centerHorizontal="true">
+            android:layout_below="@+id/relativo"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true">
 
         </com.aurelhubert.ahbottomnavigation.AHBottomNavigation>
 
