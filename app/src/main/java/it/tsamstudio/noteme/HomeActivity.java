@@ -9,6 +9,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -55,7 +56,8 @@ public class HomeActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_for_notes);
-        mLayoutManager = new GridLayoutManager(getApplicationContext(), 2);
+        //mLayoutManager = new GridLayoutManager(getApplicationContext(), 2);
+        mLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new NotesRecyclerViewAdapter(getDataSet());
         mRecyclerView.setAdapter(mAdapter);
@@ -138,7 +140,12 @@ public class HomeActivity extends AppCompatActivity
         for (int index = 0; index < 20; index++) {
             Nota note = new Nota();
             note.setTitle("TITOLONE " + index);
-            note.setText("robe a caso per debug, numero: " + index);
+            if(index %2 == 0){
+                note.setText("robe a caso per debug, numero: " + index);
+            }else{
+                note.setText("robe a caso per debug, lorem ipsum darem sit dolor amet vamos alla playa ritmo de las noce: " + index);
+            }
+
             note.setTag("family");
             note.setExpireDate(new Date());
             results.add(index, note);
