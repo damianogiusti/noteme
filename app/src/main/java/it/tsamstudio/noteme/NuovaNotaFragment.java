@@ -81,12 +81,18 @@ public class NuovaNotaFragment extends DialogFragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (activity instanceof INuovaNota) {
-            listener = (INuovaNota)activity;
+            listener = (INuovaNota) activity;
         }
     }
+
 
     @Override
     public void onDetach() {
@@ -181,14 +187,14 @@ public class NuovaNotaFragment extends DialogFragment {
 
     //metodo chiamato quando viene chiuso il dialog per salvare la etxtNota
     private Nota saveNote() {
-        if (titolo.getText().toString().trim().length() > 0 ||
-                etxtNota.getText().toString().trim().length() > 0) {   //se c'è almeno uno dei parametri
+        String titoloTemp = titolo.getText().toString().trim();
+        String testoTemp = etxtNota.getText().toString().trim();
+
+        if (titoloTemp.length() > 0 || testoTemp.length() > 0) {   //se c'è almeno uno dei parametri
             Nota nota = new Nota();
-            String titoloNota = "Nota senza titolo";
-            if (titolo.getText().length() > 0)
-                titoloNota = "" + titolo.getText();
+            String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
-            nota.setText("" + etxtNota.getText());
+            nota.setText("" + testoTemp);
             nota.setCreationDate(new Date());
             CouchbaseDB db = new CouchbaseDB(getContext());
             try {
@@ -253,6 +259,7 @@ public class NuovaNotaFragment extends DialogFragment {
         return new TimerTask() {
             private Date data = new Date(0);
             private SimpleDateFormat sdf = new SimpleDateFormat("mm:ss");
+
             @Override
             public void run() {
                 data.setTime(data.getTime() + 1000);

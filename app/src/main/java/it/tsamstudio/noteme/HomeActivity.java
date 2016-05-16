@@ -156,7 +156,7 @@ public class HomeActivity extends AppCompatActivity
 
     //metodo per creare note a caso (per testare)
     private ArrayList<Nota> getDataSet() {
-        notesList = new ArrayList<Nota>();
+        notesList = new ArrayList<>();
 
         for (int index = 0; index < 20; index++) {
             Nota note = new Nota();
@@ -179,7 +179,9 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public void onNuovaNotaAggiunta(Nota nota) {
-        notesList.add(nota);
-        mAdapter.notifyDataSetChanged();
+        if (nota != null) {
+            notesList.add(nota);
+            mAdapter.notifyDataSetChanged();
+        }
     }
 }
