@@ -73,10 +73,12 @@ public class Nota {
     }
 
     public void setColor(String color) {
-        if (!color.matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")) {
-            throw new MalformedHexColorException();
-        } else {
-            this.color = color;
+        if (color != null) {
+            if (!color.matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")) {
+                throw new MalformedHexColorException();
+            } else {
+                this.color = color;
+            }
         }
     }
 
