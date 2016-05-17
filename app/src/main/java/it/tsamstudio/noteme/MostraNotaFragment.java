@@ -90,8 +90,11 @@ public class MostraNotaFragment extends DialogFragment {
 
             Log.d(TAG, nota.getAudio());
 
+            // istanzio il player
             AudioPlayerManager.getInstance()
+                    // lo inizializzo col percorso del file
                     .init(nota.getAudio())
+                    // imposto il listener per aggiornare il cursore quando riproduce l'audio
                     .setSeekChangeListener(new AudioPlayerManager.SeekChangeListener() {
                         @Override
                         public void onSeekChanged(int position) {
@@ -99,6 +102,7 @@ public class MostraNotaFragment extends DialogFragment {
                             txtTimer.setText(AudioPlayerManager.formatTiming(position));
                         }
                     })
+                    // imposto il listener per sapere quando è finita la riproduzione dell'audio
                     .setAudioPlayingListener(new AudioPlayerManager.AudioPlayingListener() {
                         @Override
                         public void onPlayingFinish() {
