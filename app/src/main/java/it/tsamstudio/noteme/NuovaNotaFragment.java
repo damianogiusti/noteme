@@ -228,29 +228,32 @@ public class NuovaNotaFragment extends DialogFragment {
     }
 
     private void startRecording() {
-        try {
-            mRecorder = setupRecorderWithPermission();
-            if (mRecorder != null) {
+
+        mRecorder = setupRecorderWithPermission();
+        if (mRecorder != null) {
+            try {
                 mRecorder.prepare();
-                mRecorder.start();
-                isRecording = true;
-                timeProgressSnackbar = Snackbar.make(relativeLayout, getString(R.string.sto_registrando) + " - 00:00", Snackbar.LENGTH_INDEFINITE);
-                timeProgressSnackbar.show();
-                recordingTimer = new Timer();
-                recordingTimer.schedule(createTimerTask(), 1000, 1000);
+            } catch (IOException e) {
+                Log.d("AUDIO", "prepare() failed");
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            Log.d("AUDIO", "prepare() failed");
-            e.printStackTrace();
-            isRecording = false;
+            mRecorder.start();
+            isRecording = true;
+
+            timeProgressSnackbar = Snackbar.make(relativeLayout, getString(R.string.sto_registrando) + " - 00:00", Snackbar.LENGTH_INDEFINITE);
+            timeProgressSnackbar.show();
+            recordingTimer = new Timer();
+            recordingTimer.schedule(createTimerTask(), 1000, 1000);
         }
     }
 
     private void stopRecording() {
+        isRecording = false;
         mRecorder.stop();
         mRecorder.release();
-        isRecording = false;
+        mRecorder = null;
         recordingTimer.cancel();
+
         if (timeProgressSnackbar != null) {
             timeProgressSnackbar.dismiss();
         }
@@ -259,21 +262,19 @@ public class NuovaNotaFragment extends DialogFragment {
     }
 
     private MediaRecorder setupRecorder() {
-        MediaRecorder mRecorder = new MediaRecorder();
+        MediaRecorder recorder = new MediaRecorder();
         isRecording = false;
         audioOutputPath = getContext().getExternalFilesDir("NoteMeAudios") + "/" + (new Date()).getTime() + ".3gp";
-        Log.d("FILE PATH", audioOutputPath);
+        Log.d("Setup recorder", "Path: " + audioOutputPath);
 
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-        mRecorder.setOutputFile(audioOutputPath);
-        return mRecorder;
+        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        recorder.setOutputFile(audioOutputPath);
+        return recorder;
     }
 
     private MediaRecorder setupRecorderWithPermission() {
-        isRecording = false;
-
         NoteMeUtils.askForPermissions(getActivity());
 
         if (!NoteMeUtils.needsToAskForPermissions(getActivity())) {

@@ -3,7 +3,6 @@ package it.tsamstudio.noteme;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -22,9 +21,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
-
-import nl.changer.audiowife.AudioWife;
+import it.tsamstudio.noteme.utils.AudioPlayerManager;
 
 
 /**
@@ -73,8 +70,9 @@ public class MostraNotaFragment extends DialogFragment {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         dialogNoteView = inflater.inflate(R.layout.fragment_mostra_nota, null, false);
 
-        Bundle dBundle = getArguments();
-        nota = dBundle.getParcelable(NOTA_KEY_FOR_BUNDLE);
+        if (savedInstanceState == null)
+            savedInstanceState = getArguments();
+        nota = savedInstanceState.getParcelable(NOTA_KEY_FOR_BUNDLE);
 
         txtTitle = (EditText) dialogNoteView.findViewById(R.id.txtTitle);
         txtContent = (EditText) dialogNoteView.findViewById(R.id.txtContent);
@@ -92,25 +90,60 @@ public class MostraNotaFragment extends DialogFragment {
 
             Log.d(TAG, nota.getAudio());
 
-            File file = new File(nota.getAudio());
-            AudioWife.getInstance()
-                    .init(getContext(), Uri.fromFile(file))
-                    .setPlayView(btnPlayPause)
-                    .setPauseView(btnPlayPause)
-                    .setSeekBar(seekbarTime)
-                    .setRuntimeView(txtTimer)
-                    .addOnPlayClickListener(new View.OnClickListener() {
+            AudioPlayerManager.getInstance()
+                    .init(nota.getAudio())
+                    .setSeekChangeListener(new AudioPlayerManager.SeekChangeListener() {
                         @Override
-                        public void onClick(View v) {
-                            btnPlayPause.setBackgroundResource(R.drawable.ic_play_circle_orange);
+                        public void onSeekChanged(int position) {
+                            seekbarTime.setProgress(position);
+                            txtTimer.setText(AudioPlayerManager.formatTiming(position));
                         }
                     })
-                    .addOnPauseClickListener(new View.OnClickListener() {
+                    .setAudioPlayingListener(new AudioPlayerManager.AudioPlayingListener() {
                         @Override
-                        public void onClick(View v) {
-                            btnPlayPause.setBackgroundResource(R.drawable.ic_pause_circle_orange);
+                        public void onPlayingFinish() {
+                            btnPlayPause.setBackgroundResource(R.drawable.ic_play_circle_orange);
+                            seekbarTime.setProgress(0);
+                            txtTimer.setText(AudioPlayerManager.formatTiming(0));
                         }
                     });
+
+            seekbarTime.setProgress(0);
+            seekbarTime.setMax(AudioPlayerManager.getInstance().getAudioDuration());
+            txtTimer.setText(AudioPlayerManager.formatTiming(0));
+
+            seekbarTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    AudioPlayerManager.getInstance().changeSeek(seekBar.getProgress());
+                }
+            });
+
+            btnPlayPause.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (AudioPlayerManager.getInstance().isStopped()) {
+                        AudioPlayerManager.getInstance().startPlaying();
+                        btnPlayPause.setBackgroundResource(R.drawable.ic_pause_circle_orange);
+                    } else if (AudioPlayerManager.getInstance().isPlaying()) {
+                        AudioPlayerManager.getInstance().pausePlaying();
+                        btnPlayPause.setBackgroundResource(R.drawable.ic_play_circle_orange);
+                    } else if (AudioPlayerManager.getInstance().isPaused()) {
+                        AudioPlayerManager.getInstance().resumePlaying();
+                        btnPlayPause.setBackgroundResource(R.drawable.ic_pause_circle_orange);
+                    }
+                }
+            });
         } else {
             audioPlayerLayout.setVisibility(View.GONE);
         }
@@ -132,5 +165,17 @@ public class MostraNotaFragment extends DialogFragment {
         Dialog dialogShowNote = builder.create();
         return dialogShowNote;
 
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(NOTA_KEY_FOR_BUNDLE, nota);
+    }
+
+    @Override
+    public void onDestroyView() {
+        AudioPlayerManager.getInstance().destroy();
+        super.onDestroyView();
     }
 }
