@@ -339,8 +339,8 @@ public class NuovaNotaFragment extends DialogFragment {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             Bitmap bitmap = BitmapFactory.decodeFile(imageOutputPath, options);
-            if (immagine != null)
-                immagine.setImageBitmap(bitmap);
+
+            // immagine.setImageBitmap(bitmap); TODO ora come ora fa crashare l'app perchè 'immagine' non esiste
         }
     }
 
