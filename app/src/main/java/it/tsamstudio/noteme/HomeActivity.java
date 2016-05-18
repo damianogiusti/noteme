@@ -69,7 +69,7 @@ public class HomeActivity extends AppCompatActivity
             });
         }
 
-        //cerca
+        // cerca
         searchView = (SearchView) findViewById(R.id.sv);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -122,7 +122,11 @@ public class HomeActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_for_notes);
-        mLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        int colonne = 2;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            colonne = 3;
+        }
+        mLayoutManager = new StaggeredGridLayoutManager(colonne, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         database = new CouchbaseDB(getApplicationContext());
