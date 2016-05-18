@@ -23,32 +23,41 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:text="titolo nota"
+                android:textSize="8pt"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/noteContent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
                 android:layout_below="@+id/noteTitle"
                 android:layout_marginTop="10dp"
-                android:text="contenuto nota" />
+                android:text="contenuto nota"
+                android:textSize="6pt" />
 
             <TextView
                 android:id="@+id/expireDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
                 android:layout_below="@+id/noteContent"
+                android:layout_marginTop="5dp"
                 android:text="data/ins/nota"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textSize="4pt"
+                android:textStyle="italic" />
 
             <TextView
                 android:id="@+id/tag"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
-                android:layout_marginTop="10dp"
+                android:layout_below="@+id/expireDate"
+                android:layout_marginTop="5dp"
                 android:text="TAG"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -56,8 +65,11 @@
                 android:id="@+id/micImgView"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
                 android:layout_below="@+id/expireDate"
-                android:layout_marginTop="5dp" />
+                android:layout_marginTop="5dp"
+                android:visibility="gone" />
 
         </RelativeLayout>
     </android.support.v7.widget.CardView>

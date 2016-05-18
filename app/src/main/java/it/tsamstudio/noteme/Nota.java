@@ -28,6 +28,7 @@ public class Nota implements Parcelable {
     private String image;           //path eventuale immagine salvate
     private String audio;           //path eventuale audio registrato
     private Date creationDate;      // data creazione (la rappresentazione long della data sarà l'ID)
+    private Date lastModifiedDate;  // data utima modifica
     private Date expireDate;        // data di scadenza della nota, dopo la quale sarà eliminata
 
     public Nota() {
@@ -108,6 +109,14 @@ public class Nota implements Parcelable {
         this.creationDate = creationDate;
     }
 
+    public Date getLastModifiedDate() {
+        return lastModifiedDate;
+    }
+
+    public void setLastModifiedDate(Date lastModifiedDate) {
+        this.lastModifiedDate = lastModifiedDate;
+    }
+
     public Date getExpireDate() {
         return expireDate;
     }
@@ -133,10 +142,11 @@ public class Nota implements Parcelable {
         dest.writeString(image);
         dest.writeString(audio);
         dest.writeLong(creationDate.getTime());
+        dest.writeLong(lastModifiedDate.getTime());
         dest.writeLong((expireDate != null) ? expireDate.getTime() : 0);
     }
 
-    Parcelable.Creator<Nota> CREATOR = new ClassLoaderCreator<Nota>() {
+    public static Parcelable.Creator<Nota> CREATOR = new ClassLoaderCreator<Nota>() {
         @Override
         public Nota createFromParcel(Parcel source, ClassLoader loader) {
             return new Nota(source);
@@ -162,6 +172,7 @@ public class Nota implements Parcelable {
         image = in.readString();
         audio = in.readString();
         creationDate = new Date(in.readLong());
+        lastModifiedDate = new Date(in.readLong());
         expireDate = new Date(in.readLong());
     }
 }
