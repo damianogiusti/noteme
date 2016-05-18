@@ -70,7 +70,6 @@ public class HomeActivity extends AppCompatActivity
         }
 
         //cerca
-        searchList = new ArrayList<Nota>();
         searchView = (SearchView) findViewById(R.id.sv);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -83,33 +82,34 @@ public class HomeActivity extends AppCompatActivity
             @Override
             public boolean onQueryTextChange(String newText) {
 
-                searchList.clear();
+                searchList = new ArrayList<>();
                 searchAdapter = new NotesRecyclerViewAdapter(searchList);
-                mRecyclerView.setAdapter(searchAdapter);
+                mRecyclerView.swapAdapter(searchAdapter, false);
                 for (Nota x : notesList) {
-                    if (x.getText().contains(newText)) {
+                    if (x.getText().toLowerCase()
+                            .contains(newText.toLowerCase().trim())) {
                         searchList.add(x);
                     }
                 }
-                if (searchList.isEmpty() != true) {
+                if (!searchList.isEmpty()) {
                     searchAdapter.notifyDataSetChanged();
                 }
-                return false;
+                return true;
             }
         });
 
         int searchCloseButtonId = searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null);
-        closeSearch = (ImageView)this.searchView.findViewById(searchCloseButtonId);
+        closeSearch = (ImageView) this.searchView.findViewById(searchCloseButtonId);
         closeSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                searchList = null;
                 searchView.setQuery("", false);
                 searchView.setIconified(true);
-                mRecyclerView.setAdapter(mAdapter);
+                mRecyclerView.swapAdapter(mAdapter, false);
                 searchList.clear();
             }
         });
-
 
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -273,7 +273,9 @@ public class HomeActivity extends AppCompatActivity
             @Override
             public void onItemClick(int position, View v) {
                 Log.d("DEBUG CLICK NOTA", "NOTA PREMUTA:" + position);
-                Nota n = (Nota) notesList.get(position);
+                Nota n = notesList.get(position);
+                if (searchList != null)
+                    n = searchList.get(position);
                 fragmentMostraNota = MostraNotaFragment.newInstance(n, position);
                 fragmentMostraNota.show(getSupportFragmentManager(), TAG_DIALOG_MOSTRA_NOTA);
             }
@@ -316,11 +318,11 @@ public class HomeActivity extends AppCompatActivity
         launchIntent(request);
     }
 
-    private void launchIntent(int request){
-        if (request == GALLERY_CODE){       //galleria
+    private void launchIntent(int request) {
+        if (request == GALLERY_CODE) {       //galleria
             Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
             startActivityForResult(i, GALLERY_CODE);
-        }else if (request == CAMERA_CODE) {    //scatta foto
+        } else if (request == CAMERA_CODE) {    //scatta foto
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
                 startActivityForResult(takePictureIntent, CAMERA_CODE);
@@ -332,11 +334,12 @@ public class HomeActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == GALLERY_CODE && resultCode == RESULT_OK){
+        if (requestCode == GALLERY_CODE && resultCode == RESULT_OK) {
             nuovaNotaFragment.activityResult(data.getData());
         }
 
     }
+
     public void onNotaModificata(Nota nota, int position) {
         if (nota != null) {
             try {
