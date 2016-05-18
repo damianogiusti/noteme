@@ -86,6 +86,7 @@ public class MostraNotaFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         database = new CouchbaseDB(getActivity().getApplicationContext());
+        getDialog().setCanceledOnTouchOutside(false);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -238,17 +239,24 @@ public class MostraNotaFragment extends DialogFragment {
     }
 
     private Nota updateNote() {
-        nota.setTitle(txtTitle.getText().toString());
-        nota.setText(txtContent.getText().toString());
-        nota.setLastModifiedDate(new Date());
-        try {
-            database.salvaNota(nota);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
+        String title = txtTitle.getText().toString().trim();
+        String text = txtContent.getText().toString().trim();
 
+        nota.setTitle((title.length() > 0) ? title : getString(R.string.nota_senza_titolo));
+        nota.setLastModifiedDate(new Date());
+
+        if ((title.length() > 0 && text.length() > 0)
+                || (title.length() > 0 && text.length() == 0)
+                || (title.length() == 0 && text.length() > 0)) {
+            nota.setText(txtContent.getText().toString());
+            try {
+                database.salvaNota(nota);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            }
+        }
         return nota;
     }
 
