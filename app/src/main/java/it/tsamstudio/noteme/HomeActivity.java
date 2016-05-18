@@ -15,6 +15,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.SearchView;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.github.brnunes.swipeablerecyclerview.SwipeableRecyclerViewTouchListener;
@@ -31,11 +33,14 @@ public class HomeActivity extends AppCompatActivity
     public static final String TAG_DIALOG_NUOVA_NOTA = "dialognuovanota";
 
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.Adapter mAdapter, searchAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
     private CouchbaseDB database;
-    ArrayList<Nota> notesList;
+    ArrayList<Nota> notesList, searchList;
+
+    private SearchView searchView;
+    private ImageView closeSearch;  //"x" nella SearchView
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +60,49 @@ public class HomeActivity extends AppCompatActivity
             });
         }
 
+        //cerca
+        searchList = new ArrayList<Nota>();
+        searchView = (SearchView) findViewById(R.id.sv);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                //ricerca dopo invio
+                return false;
+            }
+
+            //ricerca quando il testo nella searchview cambia
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                searchList.clear();
+                searchAdapter = new NotesRecyclerViewAdapter(searchList);
+                mRecyclerView.setAdapter(searchAdapter);
+                for (Nota x : notesList) {
+                    if (x.getText().contains(newText)) {
+                        searchList.add(x);
+                    }
+                }
+                if (searchList.isEmpty() != true) {
+                    searchAdapter.notifyDataSetChanged();
+                }
+                return false;
+            }
+        });
+
+        int searchCloseButtonId = searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null);
+        closeSearch = (ImageView)this.searchView.findViewById(searchCloseButtonId);
+        closeSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchView.setQuery("", false);
+                searchView.setIconified(true);
+                mRecyclerView.setAdapter(mAdapter);
+                searchList.clear();
+            }
+        });
+
+
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -65,7 +113,6 @@ public class HomeActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_for_notes);
-        //mLayoutManager = new GridLayoutManager(getApplicationContext(), 2);
         mLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
@@ -221,8 +268,6 @@ public class HomeActivity extends AppCompatActivity
             public void onItemClick(int position, View v) {
                 Log.d("DEBUG CLICK NOTA", "NOTA PREMUTA:" + position);
                 Nota n = (Nota) notesList.get(position);
-                String t = n.getTitle();
-                String cont = n.getText();
                 MostraNotaFragment fragmentMostraNota = MostraNotaFragment.newInstance(n);
                 fragmentMostraNota.show(getSupportFragmentManager(), "DIALOG");
             }
