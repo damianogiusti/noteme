@@ -17,6 +17,7 @@ import com.couchbase.lite.View;
 import com.couchbase.lite.android.AndroidContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -172,6 +173,15 @@ public class CouchbaseDB {
     public void eliminaNota(String guid) throws CouchbaseLiteException {
         Document document = db.getExistingDocument(guid);
         if (document != null) {
+            try {
+                Nota nota = (new ObjectMapper()).readValue((String)document.getProperty(Nota.class.getName()), Nota.class);
+                File fileAudio = new File(nota.getAudio());
+                File fileImmagine = new File(nota.getImage());
+                fileAudio.delete();
+                fileImmagine.delete();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             document.delete();
         }
     }
