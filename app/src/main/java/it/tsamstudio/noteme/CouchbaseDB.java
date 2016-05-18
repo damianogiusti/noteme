@@ -174,11 +174,15 @@ public class CouchbaseDB {
         Document document = db.getExistingDocument(guid);
         if (document != null) {
             try {
-                Nota nota = (new ObjectMapper()).readValue((String)document.getProperty(Nota.class.getName()), Nota.class);
-                File fileAudio = new File(nota.getAudio());
-                File fileImmagine = new File(nota.getImage());
-                fileAudio.delete();
-                fileImmagine.delete();
+                Nota nota = (new ObjectMapper()).readValue((String) document.getProperty(Nota.class.getName()), Nota.class);
+                if (nota.getAudio() != null) {
+                    File fileAudio = new File(nota.getAudio());
+                    fileAudio.delete();
+                }
+                if (nota.getImage() != null) {
+                    File fileImmagine = new File(nota.getImage());
+                    fileImmagine.delete();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
