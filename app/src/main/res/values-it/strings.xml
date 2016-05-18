@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="action_settings">Impostazioni</string>
     <string name="titolo_nuova_nota">titolo</string>
     <string name="inserisci_testo_qui">inserisci la tua nota</string>
     <string name="sto_registrando">Sto registrando</string>
+    <string name="audio">Audio</string>
+    <string name="nota_eliminata">Nota cancellata.</string>
+    <string name="annulla">Annulla</string>
+    <string name="login">Login</string>
+    <string name="about">About</string>
 </resources>
