@@ -3,6 +3,7 @@ package it.tsamstudio.noteme;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -81,22 +82,65 @@ public class HomeActivity extends AppCompatActivity
                 new SwipeableRecyclerViewTouchListener.SwipeListener() {
                     @Override
                     public boolean canSwipeLeft(int position) {
+                        // ELIMINAZIONE
+                        // true per attivare
                         return true;
                     }
 
                     @Override
                     public boolean canSwipeRight(int position) {
-                        return true;
+                        //
+                        // true per attivare
+                        return false;
                     }
 
                     @Override
                     public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
-                        Log.d(TAG, "onDismissedBySwipeLeft: ");
+                        // TODO eliminazione con possibilità di ripristino
+                        final ArrayList<Nota> noteEliminate = new ArrayList<>(notesList.size());
+                        boolean devoRipristinare = false;
+
+                        for (int i = 0; i < notesList.size(); i++)
+                            noteEliminate.add(null);
+
+                        for (int i : reverseSortedPositions) {
+                            noteEliminate.set(i, notesList.get(i));
+                            notesList.remove(i);
+                            mAdapter.notifyDataSetChanged();
+                        }
+                        Snackbar snackNotaEliminata = Snackbar.make(recyclerView, getString(R.string.nota_eliminata), Snackbar.LENGTH_LONG);
+                        snackNotaEliminata.setAction(getString(R.string.annulla), new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                for (int i = 0; i < noteEliminate.size(); i++) {
+                                    if (noteEliminate.get(i) != null)
+                                        notesList.add(i, noteEliminate.get(i));
+                                }
+                                mAdapter.notifyDataSetChanged();
+                                noteEliminate.clear();
+                            }
+                        });
+                        snackNotaEliminata.setCallback(new Snackbar.Callback() {
+                            @Override
+                            public void onDismissed(Snackbar snackbar, int event) {
+                                super.onDismissed(snackbar, event);
+                                for (Nota n : noteEliminate) {
+                                    try {
+                                        if (n != null) {
+                                            database.eliminaNota(n);
+                                        }
+                                    } catch (CouchbaseLiteException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        });
+                        snackNotaEliminata.show();
                     }
 
                     @Override
                     public void onDismissedBySwipeRight(RecyclerView recyclerView, int[] reverseSortedPositions) {
-                        Log.d(TAG, "onDismissedBySwipeRight: ");
+                        // TODO
                     }
                 });
         mRecyclerView.addOnItemTouchListener(swipeListener);

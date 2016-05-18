@@ -147,4 +147,15 @@ public class CouchbaseDB {
         Log.d(TAG, String.format("note lette in %s ms", System.currentTimeMillis() - time));
         return note;
     }
+
+    public void eliminaNota(Nota n) throws CouchbaseLiteException {
+        eliminaNota(n.getID());
+    }
+
+    public void eliminaNota(String guid) throws CouchbaseLiteException {
+        Document document = db.getExistingDocument(guid);
+        if (document != null) {
+            document.delete();
+        }
+    }
 }
