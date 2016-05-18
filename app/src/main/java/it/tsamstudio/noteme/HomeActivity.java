@@ -1,6 +1,8 @@
 package it.tsamstudio.noteme;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -15,6 +17,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.SearchView;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.github.brnunes.swipeablerecyclerview.SwipeableRecyclerViewTouchListener;
@@ -30,16 +34,22 @@ public class HomeActivity extends AppCompatActivity
 
     private static final String TAG = "HomeActivity";
     public static final String TAG_DIALOG_NUOVA_NOTA = "dialognuovanota";
+    public static final int CAMERA_CODE = 1000;
+    public static final int GALLERY_CODE = 2000;
     private static final String TAG_DIALOG_MOSTRA_NOTA = "dialogmostranota";
 
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.Adapter mAdapter, searchAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
+    private NuovaNotaFragment nuovaNotaFragment;
     private MostraNotaFragment fragmentMostraNota;
 
     private CouchbaseDB database;
-    ArrayList<Nota> notesList;
+    ArrayList<Nota> notesList, searchList;
+
+    private SearchView searchView;
+    private ImageView closeSearch;  //"x" nella SearchView
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,11 +63,54 @@ public class HomeActivity extends AppCompatActivity
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    NuovaNotaFragment nuovaNotaFragment = NuovaNotaFragment.newInstance();
+                    nuovaNotaFragment = NuovaNotaFragment.newInstance();
                     nuovaNotaFragment.show(getSupportFragmentManager(), TAG_DIALOG_NUOVA_NOTA);
                 }
             });
         }
+
+        //cerca
+        searchList = new ArrayList<Nota>();
+        searchView = (SearchView) findViewById(R.id.sv);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                //ricerca dopo invio
+                return false;
+            }
+
+            //ricerca quando il testo nella searchview cambia
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                searchList.clear();
+                searchAdapter = new NotesRecyclerViewAdapter(searchList);
+                mRecyclerView.setAdapter(searchAdapter);
+                for (Nota x : notesList) {
+                    if (x.getText().contains(newText)) {
+                        searchList.add(x);
+                    }
+                }
+                if (searchList.isEmpty() != true) {
+                    searchAdapter.notifyDataSetChanged();
+                }
+                return false;
+            }
+        });
+
+        int searchCloseButtonId = searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null);
+        closeSearch = (ImageView)this.searchView.findViewById(searchCloseButtonId);
+        closeSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchView.setQuery("", false);
+                searchView.setIconified(true);
+                mRecyclerView.setAdapter(mAdapter);
+                searchList.clear();
+            }
+        });
+
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -69,7 +122,6 @@ public class HomeActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_for_notes);
-        //mLayoutManager = new GridLayoutManager(getApplicationContext(), 2);
         mLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
@@ -260,6 +312,31 @@ public class HomeActivity extends AppCompatActivity
     }
 
     @Override
+    public void onButtonClick(int request) {
+        launchIntent(request);
+    }
+
+    private void launchIntent(int request){
+        if (request == GALLERY_CODE){       //galleria
+            Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+            startActivityForResult(i, GALLERY_CODE);
+        }else if (request == CAMERA_CODE) {    //scatta foto
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                startActivityForResult(takePictureIntent, CAMERA_CODE);
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == GALLERY_CODE && resultCode == RESULT_OK){
+            nuovaNotaFragment.activityResult(data.getData());
+        }
+
+    }
     public void onNotaModificata(Nota nota, int position) {
         if (nota != null) {
             try {
