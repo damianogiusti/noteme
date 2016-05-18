@@ -65,12 +65,14 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         holder.title.setText(mDataset.get(position).getTitle());
         holder.content.setText(mDataset.get(position).getText());
         holder.tag.setText(mDataset.get(position).getTag());
-        Date d = mDataset.get(position).getCreationDate();
-        SimpleDateFormat sd = new SimpleDateFormat("dd/MM/yy");
+        Date d = mDataset.get(position).getLastModifiedDate();
+        SimpleDateFormat sd = new SimpleDateFormat("dd MMMM yyyy hh:mm");
+
         String date = sd.format(d);
         holder.expirationDate.setText(date);
 
         if (mDataset.get(position).getAudio() != null) {
+            holder.micImg.setVisibility(View.VISIBLE);
             holder.micImg.setImageResource(R.drawable.ic_mic_card);
         }
     }

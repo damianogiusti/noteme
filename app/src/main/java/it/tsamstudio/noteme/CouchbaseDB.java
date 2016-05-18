@@ -17,8 +17,11 @@ import com.couchbase.lite.View;
 import com.couchbase.lite.android.AndroidContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -162,6 +165,12 @@ public class CouchbaseDB {
             note.add(objectMapper.readValue(((String) row.getValue()), Nota.class));
         }
         Log.d(TAG, String.format("note lette in %s ms", System.currentTimeMillis() - time));
+        Collections.sort(note, new Comparator<Nota>() {
+            @Override
+            public int compare(Nota lhs, Nota rhs) {
+                return -1 * lhs.getCreationDate().compareTo(rhs.getCreationDate());
+            }
+        });
         return note;
     }
 
@@ -172,6 +181,19 @@ public class CouchbaseDB {
     public void eliminaNota(String guid) throws CouchbaseLiteException {
         Document document = db.getExistingDocument(guid);
         if (document != null) {
+            try {
+                Nota nota = (new ObjectMapper()).readValue((String) document.getProperty(Nota.class.getName()), Nota.class);
+                if (nota.getAudio() != null) {
+                    File fileAudio = new File(nota.getAudio());
+                    fileAudio.delete();
+                }
+                if (nota.getImage() != null) {
+                    File fileImmagine = new File(nota.getImage());
+                    fileImmagine.delete();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             document.delete();
         }
     }

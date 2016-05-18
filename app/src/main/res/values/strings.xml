@@ -12,6 +12,9 @@
     <string name="inserisci_testo_qui">your note here</string>
     <string name="sto_registrando">I\'m recording</string>
     <string name="audio">Audio</string>
-    <string name="nota_eliminata">Nota eliminata.</string>
-    <string name="annulla">Annulla</string>
+    <string name="nota_eliminata">Note deleted.</string>
+    <string name="annulla">Cancel</string>
+    <string name="login">Login</string>
+    <string name="about">About</string>
+    <string name="nota_senza_titolo">no title</string>
 </resources>

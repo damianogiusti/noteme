@@ -27,18 +27,21 @@ import java.util.Date;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        NuovaNotaFragment.INuovaNota {
+        NuovaNotaFragment.INuovaNota,
+        MostraNotaFragment.IMostraNota {
 
     private static final String TAG = "HomeActivity";
     public static final String TAG_DIALOG_NUOVA_NOTA = "dialognuovanota";
     public static final int CAMERA_CODE = 1000;
     public static final int GALLERY_CODE = 2000;
+    private static final String TAG_DIALOG_MOSTRA_NOTA = "dialogmostranota";
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
     private NuovaNotaFragment nuovaNotaFragment;
+    private MostraNotaFragment fragmentMostraNota;
 
     private CouchbaseDB database;
     ArrayList<Nota> notesList;
@@ -104,7 +107,6 @@ public class HomeActivity extends AppCompatActivity
                     public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
                         // TODO eliminazione con possibilità di ripristino
                         final ArrayList<Nota> noteEliminate = new ArrayList<>(notesList.size());
-                        boolean devoRipristinare = false;
 
                         for (int i = 0; i < notesList.size(); i++)
                             noteEliminate.add(null);
@@ -162,12 +164,18 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
+
+        if (fragmentMostraNota != null && fragmentMostraNota.isVisible())
+            if (!fragmentMostraNota.onBackPressed())
+                return;
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
         }
+
     }
 
     @Override
@@ -198,18 +206,10 @@ public class HomeActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        if (id == R.id.nav_login) {
+            // TODO login
+        } else if (id == R.id.nav_settings) {
+            // TODO impostazioni
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -227,10 +227,8 @@ public class HomeActivity extends AppCompatActivity
             public void onItemClick(int position, View v) {
                 Log.d("DEBUG CLICK NOTA", "NOTA PREMUTA:" + position);
                 Nota n = (Nota) notesList.get(position);
-                String t = n.getTitle();
-                String cont = n.getText();
-                MostraNotaFragment fragmentMostraNota = MostraNotaFragment.newInstance(n);
-                fragmentMostraNota.show(getSupportFragmentManager(), "DIALOG");
+                fragmentMostraNota = MostraNotaFragment.newInstance(n, position);
+                fragmentMostraNota.show(getSupportFragmentManager(), TAG_DIALOG_MOSTRA_NOTA);
             }
         });
     }
@@ -291,5 +289,26 @@ public class HomeActivity extends AppCompatActivity
             nuovaNotaFragment.activityResult(data.getData());
         }
 
+    }
+    public void onNotaModificata(Nota nota, int position) {
+        if (nota != null) {
+            try {
+                if (position > -1) {
+                    notesList.set(position, nota);
+                } else {
+                    notesList = database.leggiNote();
+                }
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (position > -1) {
+                mAdapter.notifyItemChanged(position);
+            } else {
+                mAdapter.notifyDataSetChanged();
+            }
+            Log.d(TAG, "onNotaModificata: ");
+        }
     }
 }

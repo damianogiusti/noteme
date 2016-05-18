@@ -1,8 +1,10 @@
 package it.tsamstudio.noteme;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,7 +21,11 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.squareup.picasso.Picasso;
+
+import java.io.IOException;
+import java.util.Date;
 
 import it.tsamstudio.noteme.utils.AudioPlayerManager;
 
@@ -31,9 +37,12 @@ public class MostraNotaFragment extends DialogFragment {
 
     private static final String TAG = "MostraNotaFragment";
 
+    private Dialog dialogShowNote;
+
     private View dialogNoteView;
     private EditText txtTitle, txtContent;
     private Nota nota;
+    private CouchbaseDB database;
 
     // player audio
     private ImageButton btnPlayPause;
@@ -43,15 +52,32 @@ public class MostraNotaFragment extends DialogFragment {
     private ImageView imgThumbnail;
 
     private final static String NOTA_KEY_FOR_BUNDLE = "notaParceable";
+    private final static String POSITION_KEY_FOR_BUNDLE = "posizioneNota";
+
+    public interface IMostraNota {
+        void onNotaModificata(Nota nota, int position);
+    }
+
+    private IMostraNota listener = new IMostraNota() {
+        @Override
+        public void onNotaModificata(Nota nota, int position) {
+            Log.d(TAG, "IMostraNota: dummy init");
+        }
+    };
 
     public MostraNotaFragment() {
         // Required empty public constructor
     }
 
     public static MostraNotaFragment newInstance(Nota nota) {
+        return newInstance(nota, -1);
+    }
+
+    public static MostraNotaFragment newInstance(Nota nota, int position) {
         MostraNotaFragment mostraNotaFragment = new MostraNotaFragment();
         Bundle bundle = new Bundle();
         bundle.putParcelable(NOTA_KEY_FOR_BUNDLE, nota);
+        bundle.putInt(POSITION_KEY_FOR_BUNDLE, position);
         mostraNotaFragment.setArguments(bundle);
         return mostraNotaFragment;
     }
@@ -59,6 +85,8 @@ public class MostraNotaFragment extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        database = new CouchbaseDB(getActivity().getApplicationContext());
+        getDialog().setCanceledOnTouchOutside(false);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -78,7 +106,32 @@ public class MostraNotaFragment extends DialogFragment {
         txtContent = (EditText) dialogNoteView.findViewById(R.id.txtContent);
 
         txtTitle.setText(nota.getTitle());
+        txtTitle.setFocusableInTouchMode(false);
+        txtTitle.setClickable(true);
+        txtTitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!txtTitle.isFocusableInTouchMode()) {
+                    Log.d(TAG, "onClick: txtTitle");
+                    txtTitle.setFocusableInTouchMode(true);
+                    txtContent.setFocusableInTouchMode(false);
+                }
+            }
+        });
+
         txtContent.setText(nota.getText());
+        txtContent.setFocusableInTouchMode(false);
+        txtContent.setClickable(true);
+        txtContent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!txtContent.isFocusableInTouchMode()) {
+                    Log.d(TAG, "onClick: txtContent");
+                    txtContent.setFocusableInTouchMode(true);
+                    txtTitle.setFocusableInTouchMode(false);
+                }
+            }
+        });
 
         // se ho una nota audio do la possibilita di riprodurla, altrimenti non mostro il player
         RelativeLayout audioPlayerLayout = (RelativeLayout) dialogNoteView.findViewById(R.id.audioPlayerLayout);
@@ -94,7 +147,7 @@ public class MostraNotaFragment extends DialogFragment {
             AudioPlayerManager.getInstance()
                     // lo inizializzo col percorso del file
                     .init(nota.getAudio())
-                    // imposto il listener per aggiornare il cursore quando riproduce l'audio
+                            // imposto il listener per aggiornare il cursore quando riproduce l'audio
                     .setSeekChangeListener(new AudioPlayerManager.SeekChangeListener() {
                         @Override
                         public void onSeekChanged(int position) {
@@ -102,7 +155,7 @@ public class MostraNotaFragment extends DialogFragment {
                             txtTimer.setText(AudioPlayerManager.formatTiming(position));
                         }
                     })
-                    // imposto il listener per sapere quando è finita la riproduzione dell'audio
+                            // imposto il listener per sapere quando è finita la riproduzione dell'audio
                     .setAudioPlayingListener(new AudioPlayerManager.AudioPlayingListener() {
                         @Override
                         public void onPlayingFinish() {
@@ -166,9 +219,55 @@ public class MostraNotaFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogNoteView);
 
-        Dialog dialogShowNote = builder.create();
+        dialogShowNote = builder.create();
         return dialogShowNote;
 
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof IMostraNota) {
+            listener = (IMostraNota) activity;
+        }
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        listener.onNotaModificata(updateNote(), getArguments().getInt(POSITION_KEY_FOR_BUNDLE));
+    }
+
+    private Nota updateNote() {
+        String title = txtTitle.getText().toString().trim();
+        String text = txtContent.getText().toString().trim();
+
+        nota.setTitle((title.length() > 0) ? title : getString(R.string.nota_senza_titolo));
+        nota.setLastModifiedDate(new Date());
+
+        if ((title.length() > 0 && text.length() > 0)
+                || (title.length() > 0 && text.length() == 0)
+                || (title.length() == 0 && text.length() > 0)) {
+            nota.setText(txtContent.getText().toString());
+            try {
+                database.salvaNota(nota);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            }
+        }
+        return nota;
+    }
+
+    public boolean onBackPressed() {
+        Log.d(TAG, "onBackPressed: ");
+        if (txtTitle.isFocusableInTouchMode() || txtContent.isFocusableInTouchMode()) {
+            txtTitle.setFocusableInTouchMode(false);
+            txtContent.setFocusableInTouchMode(false);
+            return false;
+        }
+        return true;
     }
 
     @Override
