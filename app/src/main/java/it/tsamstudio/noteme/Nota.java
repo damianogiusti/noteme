@@ -19,15 +19,6 @@ public class Nota implements Parcelable {
 
     private static final String TAG = "Nota";
 
-    //chiave degli attributi
-    /*public final String KEY_TITLE = "key_title";         //chiave titolo
-    public final String KEY_COLOR = "color";             //chiave colore
-    public final String KEY_TAG = "tag";
-    public final String KEY_TEXT = "text";            //chiave testo
-    public final String KEY_IMAGE = "image";       //chiave eventuale immagine
-    public final String KEY_AUDIO = "audio";         //chiave eventuale audio
-*/
-
     //attributi
     private String id;
     private String title;           //titolo

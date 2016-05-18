@@ -115,7 +115,10 @@ public class NuovaNotaFragment extends DialogFragment {
         titolo = (TextView) dialogView.findViewById(R.id.etxtTitolo);
         etxtNota = (TextView) dialogView.findViewById(R.id.etxtNota);
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
+
+        // TODO qui non prende l'imageView giusta, bisogna fare il layout per la visualizzazione
         immagine = (ImageView) dialogView.findViewById(R.id.imageView);
+
         immagineAudio = (ImageView) dialogView.findViewById(R.id.imageAudio);
         titoloAudio = (TextView) dialogView.findViewById(R.id.textAudio);
 
@@ -201,11 +204,7 @@ public class NuovaNotaFragment extends DialogFragment {
             Nota nota = new Nota();
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
-            /*if (audioOutputPath != null) {
-                nota.setAudio(audioOutputPath);
-                audioOutputPath = null;
-                Log.d("AUDIO", "audio salvato nella nota");
-            }*/
+
             nota.setText("" + testoTemp);
             nota.setCreationDate(new Date());
             nota.setAudio(audioOutputPath);
@@ -269,7 +268,7 @@ public class NuovaNotaFragment extends DialogFragment {
 
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         recorder.setOutputFile(audioOutputPath);
         return recorder;
     }
@@ -340,8 +339,8 @@ public class NuovaNotaFragment extends DialogFragment {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             Bitmap bitmap = BitmapFactory.decodeFile(imageOutputPath, options);
-            if (bitmap != null)
-                immagine.setImageBitmap(bitmap);
+
+            // immagine.setImageBitmap(bitmap); TODO ora come ora fa crashare l'app perchè 'immagine' non esiste
         }
     }
 

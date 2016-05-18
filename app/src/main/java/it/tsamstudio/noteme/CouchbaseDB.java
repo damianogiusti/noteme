@@ -94,9 +94,11 @@ public class CouchbaseDB {
      */
     public void salvaNota(Nota nota) throws IOException, CouchbaseLiteException {
         Document document = db.getDocument(nota.getID());
-        Map<String, Object> properties = document.getProperties();
-        if (properties == null)
-            properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> documentProperties = document.getProperties();
+
+        if (documentProperties != null)
+            properties.putAll(documentProperties);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String s = objectMapper.writeValueAsString(nota);
