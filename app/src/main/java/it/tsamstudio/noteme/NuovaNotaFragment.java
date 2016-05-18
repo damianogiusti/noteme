@@ -224,6 +224,8 @@ public class NuovaNotaFragment extends DialogFragment {
 
             nota.setText("" + testoTemp);
             nota.setCreationDate(new Date());
+            nota.setLastModifiedDate(new Date());
+            // TODO set data scadenza
             nota.setAudio(audioOutputPath);
             nota.setImage(imageOutputPath);
 

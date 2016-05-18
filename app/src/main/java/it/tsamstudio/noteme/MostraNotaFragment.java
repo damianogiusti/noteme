@@ -25,6 +25,7 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.util.Date;
 
 import it.tsamstudio.noteme.utils.AudioPlayerManager;
 
@@ -239,6 +240,7 @@ public class MostraNotaFragment extends DialogFragment {
     private Nota updateNote() {
         nota.setTitle(txtTitle.getText().toString());
         nota.setText(txtContent.getText().toString());
+        nota.setLastModifiedDate(new Date());
         try {
             database.salvaNota(nota);
         } catch (IOException e) {
