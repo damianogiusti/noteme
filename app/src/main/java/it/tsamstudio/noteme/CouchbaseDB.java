@@ -122,13 +122,30 @@ public class CouchbaseDB {
         Log.d(TAG, String.format("note salvate in %s ms", System.currentTimeMillis() - time));
     }
 
+    /**
+     * Legge una nota dal database
+     *
+     * @param id guid della nota da leggere
+     * @return nota letta
+     */
     public Nota leggiNota(String id) {
-        // TODO
-        return null;
+        Document document = db.getExistingDocument(id);
+        if (document == null) {
+            Log.e(TAG, "leggiNota: documento non trovato per id=" + id);
+            return null;
+        }
+        String jsonNota = (String) document.getProperty(Nota.class.getName());
+        try {
+            return (new ObjectMapper().readValue(jsonNota, Nota.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
      * Legge le note memorizzate nel database
+     *
      * @return
      * @throws CouchbaseLiteException
      * @throws IOException
