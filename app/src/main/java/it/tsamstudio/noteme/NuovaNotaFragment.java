@@ -33,9 +33,11 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.aurelhubert.ahbottomnavigation.AHClickListener;
 import com.couchbase.lite.CouchbaseLiteException;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
@@ -55,7 +57,7 @@ public class NuovaNotaFragment extends DialogFragment {
     private TextView titolo, etxtNota, titoloAudio;
     private MediaRecorder mRecorder;
     private String audioOutputPath = null;
-    private String imageOutputPath;
+    private String imageOutputPath = null;
     private ImageView immagine, immagineAudio;
     private RelativeLayout relativeLayout;
 
@@ -70,10 +72,16 @@ public class NuovaNotaFragment extends DialogFragment {
         public void onNuovaNotaAggiunta(Nota nota) {
             Log.d("onNuovaNotaAggiunta", "dummy init");
         }
+
+        @Override
+        public void onButtonClick(int request) {
+
+        }
     };
 
     public interface INuovaNota {
         void onNuovaNotaAggiunta(Nota nota);
+        void onButtonClick(int request);
     }
 
     public NuovaNotaFragment() {
@@ -99,6 +107,7 @@ public class NuovaNotaFragment extends DialogFragment {
         if (activity instanceof INuovaNota) {
             listener = (INuovaNota) activity;
         }
+
     }
 
     @Override
@@ -134,13 +143,14 @@ public class NuovaNotaFragment extends DialogFragment {
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
 
         // TODO qui non prende l'imageView giusta, bisogna fare il layout per la visualizzazione
-        immagine = (ImageView) dialogView.findViewById(R.id.imageView);
+        immagine = (ImageView) dialogView.findViewById(R.id.immagine);
 
         immagineAudio = (ImageView) dialogView.findViewById(R.id.imageAudio);
         titoloAudio = (TextView) dialogView.findViewById(R.id.textAudio);
 
         titoloAudio.setVisibility(View.GONE);
         immagineAudio.setVisibility(View.GONE);
+        immagine.setVisibility(View.GONE);
 
         recordingTimer = new Timer();
         timerTime = new Date(0);
@@ -156,6 +166,7 @@ public class NuovaNotaFragment extends DialogFragment {
 
             @Override
             public boolean onLongClickListener(View view) {
+                listener.onButtonClick(HomeActivity.GALLERY_CODE);
                 Log.d("onLongPress", "" + bottomNavigation.getCurrentItem());
                 return true;
             }
@@ -164,7 +175,6 @@ public class NuovaNotaFragment extends DialogFragment {
         item2.setListener(new AHClickListener() {
             @Override
             public void onClickListener(View view) {
-
                 //startRecording();
             }
 
@@ -383,6 +393,14 @@ public class NuovaNotaFragment extends DialogFragment {
         immagineAudio.setVisibility(View.VISIBLE);
         titoloAudio.setText(getString(R.string.audio));
         immagineAudio.setImageResource(R.drawable.ic_volume_up_24dp);
+    }
+
+    public void activityResult(Uri percorso){
+        immagine.setVisibility(View.VISIBLE);
+        Picasso.with(getContext()).load(percorso).into(immagine);
+        if (imageOutputPath == null){
+            imageOutputPath = percorso.getPath();
+        }
     }
 
 }
