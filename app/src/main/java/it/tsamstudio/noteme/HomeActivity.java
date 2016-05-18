@@ -81,22 +81,22 @@ public class HomeActivity extends AppCompatActivity
                 new SwipeableRecyclerViewTouchListener.SwipeListener() {
                     @Override
                     public boolean canSwipeLeft(int position) {
-                        return false;
+                        return true;
                     }
 
                     @Override
                     public boolean canSwipeRight(int position) {
-                        return false;
+                        return true;
                     }
 
                     @Override
                     public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
-
+                        Log.d(TAG, "onDismissedBySwipeLeft: ");
                     }
 
                     @Override
                     public void onDismissedBySwipeRight(RecyclerView recyclerView, int[] reverseSortedPositions) {
-
+                        Log.d(TAG, "onDismissedBySwipeRight: ");
                     }
                 });
         mRecyclerView.addOnItemTouchListener(swipeListener);
