@@ -145,10 +145,9 @@ public class AudioPlayerManager {
     }
 
     /**
-     * Destroys current instance of AudioPlayerManager and releases audio resources.<br>
-     * Call it when your Activity or your Fragment is going to be destroyed.
+     * Destroys current instance of AudioPlayerManager and releases audio resources.
      */
-    public void destroy() {
+    private void destroy() {
         mediaPlayer.release();
         mediaPlayer = null;
         isPlaying = false;
@@ -218,7 +217,7 @@ public class AudioPlayerManager {
         // its ok to show 00:00 in the UI
         return String.format("%02d:%02d", minutes, seconds);
     }
-    
+
     public AudioPlayerManager setSeekChangeListener(SeekChangeListener seekChangeListener) {
         this.seekChangeListener = seekChangeListener;
         return this;

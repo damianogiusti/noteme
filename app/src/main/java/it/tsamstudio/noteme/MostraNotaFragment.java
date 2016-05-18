@@ -176,10 +176,4 @@ public class MostraNotaFragment extends DialogFragment {
         super.onSaveInstanceState(outState);
         outState.putParcelable(NOTA_KEY_FOR_BUNDLE, nota);
     }
-
-    @Override
-    public void onDestroyView() {
-        AudioPlayerManager.getInstance().destroy();
-        super.onDestroyView();
-    }
 }

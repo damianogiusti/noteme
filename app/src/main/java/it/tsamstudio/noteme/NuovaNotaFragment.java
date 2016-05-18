@@ -340,7 +340,8 @@ public class NuovaNotaFragment extends DialogFragment {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             Bitmap bitmap = BitmapFactory.decodeFile(imageOutputPath, options);
-            immagine.setImageBitmap(bitmap);
+            if (bitmap != null)
+                immagine.setImageBitmap(bitmap);
         }
     }
 

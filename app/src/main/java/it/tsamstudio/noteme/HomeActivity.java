@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.couchbase.lite.CouchbaseLiteException;
+import com.github.brnunes.swipeablerecyclerview.SwipeableRecyclerViewTouchListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,7 +77,29 @@ public class HomeActivity extends AppCompatActivity
         } catch (IOException e) {
             e.printStackTrace();
         }
+        SwipeableRecyclerViewTouchListener swipeListener = new SwipeableRecyclerViewTouchListener(mRecyclerView,
+                new SwipeableRecyclerViewTouchListener.SwipeListener() {
+                    @Override
+                    public boolean canSwipeLeft(int position) {
+                        return false;
+                    }
 
+                    @Override
+                    public boolean canSwipeRight(int position) {
+                        return false;
+                    }
+
+                    @Override
+                    public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
+
+                    }
+
+                    @Override
+                    public void onDismissedBySwipeRight(RecyclerView recyclerView, int[] reverseSortedPositions) {
+
+                    }
+                });
+        mRecyclerView.addOnItemTouchListener(swipeListener);
         mAdapter = new NotesRecyclerViewAdapter(notesList);
         mRecyclerView.setAdapter(mAdapter);
     }
