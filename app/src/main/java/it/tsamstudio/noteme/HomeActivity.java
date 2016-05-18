@@ -1,6 +1,8 @@
 package it.tsamstudio.noteme;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -29,10 +31,14 @@ public class HomeActivity extends AppCompatActivity
 
     private static final String TAG = "HomeActivity";
     public static final String TAG_DIALOG_NUOVA_NOTA = "dialognuovanota";
+    public static final int CAMERA_CODE = 1000;
+    public static final int GALLERY_CODE = 2000;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+
+    private NuovaNotaFragment nuovaNotaFragment;
 
     private CouchbaseDB database;
     ArrayList<Nota> notesList;
@@ -49,7 +55,7 @@ public class HomeActivity extends AppCompatActivity
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    NuovaNotaFragment nuovaNotaFragment = NuovaNotaFragment.newInstance();
+                    nuovaNotaFragment = NuovaNotaFragment.newInstance();
                     nuovaNotaFragment.show(getSupportFragmentManager(), TAG_DIALOG_NUOVA_NOTA);
                 }
             });
@@ -258,5 +264,32 @@ public class HomeActivity extends AppCompatActivity
             notesList.add(nota);
             mAdapter.notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public void onButtonClick(int request) {
+        launchIntent(request);
+    }
+
+    private void launchIntent(int request){
+        if (request == GALLERY_CODE){       //galleria
+            Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+            startActivityForResult(i, GALLERY_CODE);
+        }else if (request == CAMERA_CODE) {    //scatta foto
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                startActivityForResult(takePictureIntent, CAMERA_CODE);
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == GALLERY_CODE && resultCode == RESULT_OK){
+            nuovaNotaFragment.activityResult(data.getData());
+        }
+
     }
 }
