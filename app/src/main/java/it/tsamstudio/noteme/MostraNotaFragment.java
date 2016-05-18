@@ -1,6 +1,7 @@
 package it.tsamstudio.noteme;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -20,7 +21,10 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.squareup.picasso.Picasso;
+
+import java.io.IOException;
 
 import it.tsamstudio.noteme.utils.AudioPlayerManager;
 
@@ -37,6 +41,7 @@ public class MostraNotaFragment extends DialogFragment {
     private View dialogNoteView;
     private EditText txtTitle, txtContent;
     private Nota nota;
+    private CouchbaseDB database;
 
     // player audio
     private ImageButton btnPlayPause;
@@ -46,15 +51,32 @@ public class MostraNotaFragment extends DialogFragment {
     private ImageView imgThumbnail;
 
     private final static String NOTA_KEY_FOR_BUNDLE = "notaParceable";
+    private final static String POSITION_KEY_FOR_BUNDLE = "posizioneNota";
+
+    public interface IMostraNota {
+        void onNotaModificata(Nota nota, int position);
+    }
+
+    private IMostraNota listener = new IMostraNota() {
+        @Override
+        public void onNotaModificata(Nota nota, int position) {
+            Log.d(TAG, "IMostraNota: dummy init");
+        }
+    };
 
     public MostraNotaFragment() {
         // Required empty public constructor
     }
 
     public static MostraNotaFragment newInstance(Nota nota) {
+        return newInstance(nota, -1);
+    }
+
+    public static MostraNotaFragment newInstance(Nota nota, int position) {
         MostraNotaFragment mostraNotaFragment = new MostraNotaFragment();
         Bundle bundle = new Bundle();
         bundle.putParcelable(NOTA_KEY_FOR_BUNDLE, nota);
+        bundle.putInt(POSITION_KEY_FOR_BUNDLE, position);
         mostraNotaFragment.setArguments(bundle);
         return mostraNotaFragment;
     }
@@ -62,6 +84,7 @@ public class MostraNotaFragment extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        database = new CouchbaseDB(getActivity().getApplicationContext());
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -200,9 +223,31 @@ public class MostraNotaFragment extends DialogFragment {
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof IMostraNota) {
+            listener = (IMostraNota) activity;
+        }
+    }
+
+    @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
+        listener.onNotaModificata(updateNote(), getArguments().getInt(POSITION_KEY_FOR_BUNDLE));
+    }
 
+    private Nota updateNote() {
+        nota.setTitle(txtTitle.getText().toString());
+        nota.setText(txtContent.getText().toString());
+        try {
+            database.salvaNota(nota);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+
+        return nota;
     }
 
     public boolean onBackPressed() {

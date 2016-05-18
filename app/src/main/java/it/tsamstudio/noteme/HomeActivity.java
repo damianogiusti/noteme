@@ -25,7 +25,8 @@ import java.util.Date;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        NuovaNotaFragment.INuovaNota {
+        NuovaNotaFragment.INuovaNota,
+        MostraNotaFragment.IMostraNota {
 
     private static final String TAG = "HomeActivity";
     public static final String TAG_DIALOG_NUOVA_NOTA = "dialognuovanota";
@@ -229,7 +230,7 @@ public class HomeActivity extends AppCompatActivity
             public void onItemClick(int position, View v) {
                 Log.d("DEBUG CLICK NOTA", "NOTA PREMUTA:" + position);
                 Nota n = (Nota) notesList.get(position);
-                fragmentMostraNota = MostraNotaFragment.newInstance(n);
+                fragmentMostraNota = MostraNotaFragment.newInstance(n, position);
                 fragmentMostraNota.show(getSupportFragmentManager(), TAG_DIALOG_MOSTRA_NOTA);
             }
         });
@@ -263,6 +264,29 @@ public class HomeActivity extends AppCompatActivity
         if (nota != null) {
             notesList.add(nota);
             mAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onNotaModificata(Nota nota, int position) {
+        if (nota != null) {
+            try {
+                if (position > -1) {
+                    notesList.set(position, nota);
+                } else {
+                    notesList = database.leggiNote();
+                }
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (position > -1) {
+                mAdapter.notifyItemChanged(position);
+            } else {
+                mAdapter.notifyDataSetChanged();
+            }
+            Log.d(TAG, "onNotaModificata: ");
         }
     }
 }
