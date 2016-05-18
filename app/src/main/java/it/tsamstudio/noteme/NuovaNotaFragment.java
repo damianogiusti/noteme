@@ -146,8 +146,8 @@ public class NuovaNotaFragment extends DialogFragment {
         timerTime = new Date(0);
 
         final AHBottomNavigation bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
-        bottomNavigation.setForceTitlesDisplay(false);
-        AHBottomNavigationItem item1 = new AHBottomNavigationItem("1", R.drawable.ic_attach_file_white_48dp);
+
+        AHBottomNavigationItem item1 = new AHBottomNavigationItem("", R.drawable.ic_attach_file_white_48dp);
         item1.setListener(new AHClickListener() {
             @Override
             public void onClickListener(View view) {
@@ -160,7 +160,7 @@ public class NuovaNotaFragment extends DialogFragment {
                 return true;
             }
         });
-        AHBottomNavigationItem item2 = new AHBottomNavigationItem("2", R.drawable.ic_mic_white_48dp);
+        AHBottomNavigationItem item2 = new AHBottomNavigationItem("", R.drawable.ic_mic_white_48dp);
         item2.setListener(new AHClickListener() {
             @Override
             public void onClickListener(View view) {
@@ -179,7 +179,7 @@ public class NuovaNotaFragment extends DialogFragment {
                 return true;
             }
         });
-        AHBottomNavigationItem item3 = new AHBottomNavigationItem("3", R.drawable.ic_add_a_photo_white_48dp);
+        AHBottomNavigationItem item3 = new AHBottomNavigationItem("", R.drawable.ic_add_a_photo_white_48dp);
         item3.setListener(new AHClickListener() {
             @Override
             public void onClickListener(View view) {
