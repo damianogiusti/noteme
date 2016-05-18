@@ -29,10 +29,13 @@ public class HomeActivity extends AppCompatActivity
 
     private static final String TAG = "HomeActivity";
     public static final String TAG_DIALOG_NUOVA_NOTA = "dialognuovanota";
+    private static final String TAG_DIALOG_MOSTRA_NOTA = "dialogmostranota";
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+
+    private MostraNotaFragment fragmentMostraNota;
 
     private CouchbaseDB database;
     ArrayList<Nota> notesList;
@@ -98,7 +101,6 @@ public class HomeActivity extends AppCompatActivity
                     public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
                         // TODO eliminazione con possibilità di ripristino
                         final ArrayList<Nota> noteEliminate = new ArrayList<>(notesList.size());
-                        boolean devoRipristinare = false;
 
                         for (int i = 0; i < notesList.size(); i++)
                             noteEliminate.add(null);
@@ -156,12 +158,18 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
+
+        if (fragmentMostraNota != null && fragmentMostraNota.isVisible())
+            if (!fragmentMostraNota.onBackPressed())
+                return;
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
         }
+
     }
 
     @Override
@@ -221,10 +229,8 @@ public class HomeActivity extends AppCompatActivity
             public void onItemClick(int position, View v) {
                 Log.d("DEBUG CLICK NOTA", "NOTA PREMUTA:" + position);
                 Nota n = (Nota) notesList.get(position);
-                String t = n.getTitle();
-                String cont = n.getText();
-                MostraNotaFragment fragmentMostraNota = MostraNotaFragment.newInstance(n);
-                fragmentMostraNota.show(getSupportFragmentManager(), "DIALOG");
+                fragmentMostraNota = MostraNotaFragment.newInstance(n);
+                fragmentMostraNota.show(getSupportFragmentManager(), TAG_DIALOG_MOSTRA_NOTA);
             }
         });
     }

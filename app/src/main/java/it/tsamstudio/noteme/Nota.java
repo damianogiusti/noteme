@@ -136,7 +136,7 @@ public class Nota implements Parcelable {
         dest.writeLong((expireDate != null) ? expireDate.getTime() : 0);
     }
 
-    Parcelable.Creator<Nota> CREATOR = new ClassLoaderCreator<Nota>() {
+    public static Parcelable.Creator<Nota> CREATOR = new ClassLoaderCreator<Nota>() {
         @Override
         public Nota createFromParcel(Parcel source, ClassLoader loader) {
             return new Nota(source);

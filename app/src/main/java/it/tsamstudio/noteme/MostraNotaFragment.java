@@ -3,6 +3,7 @@ package it.tsamstudio.noteme;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -30,6 +31,8 @@ import it.tsamstudio.noteme.utils.AudioPlayerManager;
 public class MostraNotaFragment extends DialogFragment {
 
     private static final String TAG = "MostraNotaFragment";
+
+    private Dialog dialogShowNote;
 
     private View dialogNoteView;
     private EditText txtTitle, txtContent;
@@ -78,7 +81,32 @@ public class MostraNotaFragment extends DialogFragment {
         txtContent = (EditText) dialogNoteView.findViewById(R.id.txtContent);
 
         txtTitle.setText(nota.getTitle());
+        txtTitle.setFocusableInTouchMode(false);
+        txtTitle.setClickable(true);
+        txtTitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!txtTitle.isFocusableInTouchMode()) {
+                    Log.d(TAG, "onClick: txtTitle");
+                    txtTitle.setFocusableInTouchMode(true);
+                    txtContent.setFocusableInTouchMode(false);
+                }
+            }
+        });
+
         txtContent.setText(nota.getText());
+        txtContent.setFocusableInTouchMode(false);
+        txtContent.setClickable(true);
+        txtContent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!txtContent.isFocusableInTouchMode()) {
+                    Log.d(TAG, "onClick: txtContent");
+                    txtContent.setFocusableInTouchMode(true);
+                    txtTitle.setFocusableInTouchMode(false);
+                }
+            }
+        });
 
         // se ho una nota audio do la possibilita di riprodurla, altrimenti non mostro il player
         RelativeLayout audioPlayerLayout = (RelativeLayout) dialogNoteView.findViewById(R.id.audioPlayerLayout);
@@ -94,7 +122,7 @@ public class MostraNotaFragment extends DialogFragment {
             AudioPlayerManager.getInstance()
                     // lo inizializzo col percorso del file
                     .init(nota.getAudio())
-                    // imposto il listener per aggiornare il cursore quando riproduce l'audio
+                            // imposto il listener per aggiornare il cursore quando riproduce l'audio
                     .setSeekChangeListener(new AudioPlayerManager.SeekChangeListener() {
                         @Override
                         public void onSeekChanged(int position) {
@@ -102,7 +130,7 @@ public class MostraNotaFragment extends DialogFragment {
                             txtTimer.setText(AudioPlayerManager.formatTiming(position));
                         }
                     })
-                    // imposto il listener per sapere quando è finita la riproduzione dell'audio
+                            // imposto il listener per sapere quando è finita la riproduzione dell'audio
                     .setAudioPlayingListener(new AudioPlayerManager.AudioPlayingListener() {
                         @Override
                         public void onPlayingFinish() {
@@ -166,9 +194,25 @@ public class MostraNotaFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogNoteView);
 
-        Dialog dialogShowNote = builder.create();
+        dialogShowNote = builder.create();
         return dialogShowNote;
 
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+
+    }
+
+    public boolean onBackPressed() {
+        Log.d(TAG, "onBackPressed: ");
+        if (txtTitle.isFocusableInTouchMode() || txtContent.isFocusableInTouchMode()) {
+            txtTitle.setFocusableInTouchMode(false);
+            txtContent.setFocusableInTouchMode(false);
+            return false;
+        }
+        return true;
     }
 
     @Override
