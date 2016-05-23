@@ -11,39 +11,19 @@
         <RelativeLayout
             android:id="@+id/relativo"
             android:layout_width="315dp"
-            android:layout_height="315dp"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin">
+            android:layout_height="415dp">
 
-            <EditText
-                android:id="@+id/etxtTitolo"
+            <ImageView
+                android:id="@+id/immagine"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="5dp"
-                android:layout_below="@+id/immagine"
-                android:background="@android:color/transparent"
-                android:capitalize="sentences"
-                android:gravity="center_horizontal"
-                android:hint="@string/titolo_nuova_nota"
-                android:maxLength="30"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/etxtNota"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:gravity="start"
-                android:layout_marginBottom="60dp"
-                android:hint="@string/inserisci_testo_qui"
-                android:layout_below="@+id/etxtTitolo"
+                android:layout_height="200dp"
                 android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true" />
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true" />
+
 
             <LinearLayout
                 android:id="@+id/tagSettings"
-                android:layout_below="@+id/etxtNota"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
@@ -80,43 +60,71 @@
 
             </RelativeLayout>
 
+            <RelativeLayout
 
-            <LinearLayout
-                android:id="@+id/audio"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_marginBottom="56dp"
-                android:orientation="horizontal">
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/immagine"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin">
 
-                <ImageView
-                    android:id="@+id/imageAudio"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                <EditText
+                    android:id="@+id/etxtTitolo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:capitalize="sentences"
+                    android:gravity="center_horizontal"
+                    android:hint="@string/titolo_nuova_nota"
+                    android:maxLength="30"
+                    android:paddingTop="5dp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etxtNota"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
-                    android:layout_alignTop="@+id/textAudio" />
+                    android:layout_below="@+id/etxtTitolo"
+                    android:layout_marginBottom="60dp"
+                    android:background="@android:color/transparent"
+                    android:gravity="start"
+                    android:hint="@string/inserisci_testo_qui" />
 
-                <TextView
-                    android:id="@+id/textAudio"
+                <LinearLayout
+                    android:id="@+id/audio"
                     android:layout_width="match_parent"
-                    android:layout_height="20dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:layout_toEndOf="@+id/imageAudio"
-                    android:layout_toRightOf="@+id/imageAudio"
-                    android:gravity="center_vertical" />
-            </LinearLayout>
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginBottom="56dp"
+                    android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:id="@+id/immagine"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true" />
+                    <ImageView
+                        android:id="@+id/imageAudio"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignTop="@+id/textAudio" />
+
+                    <TextView
+                        android:id="@+id/textAudio"
+                        android:layout_width="match_parent"
+                        android:layout_height="20dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_below="@+id/etxtNota"
+                        android:layout_toEndOf="@+id/imageAudio"
+                        android:layout_toRightOf="@+id/imageAudio"
+                        android:gravity="center_vertical" />
+                </LinearLayout>
+            </RelativeLayout>
 
         </RelativeLayout>
     </ScrollView>

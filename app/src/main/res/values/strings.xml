@@ -17,4 +17,6 @@
     <string name="login">Login</string>
     <string name="about">About</string>
     <string name="nota_senza_titolo">no title</string>
+    <string name="eliminare_nota">Eliminare la nota audio?</string>
+    <string name="elimina">Elimina</string>
 </resources>
