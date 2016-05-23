@@ -4,12 +4,25 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import it.tsamstudio.noteme.NoteMeApp;
 
 /**
  * Created by damiano on 16/05/16.
@@ -94,5 +107,57 @@ public class NoteMeUtils {
         BitmapDrawable bmd = new BitmapDrawable(resizedBitmap);
 
         return bmd;
+    }
+
+    /**
+     * Convenience method for creating an image file
+     *
+     * @return File object
+     * @throws IOException
+     */
+    public static File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = NoteMeApp.getInstance().getApplicationContext().getExternalFilesDir(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        return image;
+    }
+
+    /**
+     * Convenience method for saving a compressed picture
+     *
+     * @param uri           uri path to save file
+     * @param compressRatio amount of JPEG compression to apply (0-100)
+     * @return FIle object
+     * @throws IOException
+     */
+    public static File saveCompressedPicture(Uri uri, int compressRatio) throws IOException {
+        File file;
+        InputStream is = NoteMeApp.getInstance().getContentResolver().openInputStream(uri);
+        file = createImageFile();
+
+        OutputStream outputStream = new FileOutputStream(file);
+        Bitmap bmp = BitmapFactory.decodeStream(is);
+
+        if (bmp.getWidth() > 800) {
+            // width : 800 = height : x
+            int newWidth = 800;
+            int newHeight = 800 * bmp.getHeight() / bmp.getWidth();
+            bmp = Bitmap.createScaledBitmap(bmp, newWidth, newHeight, false);
+        }
+        bmp.compress(Bitmap.CompressFormat.JPEG, 50, outputStream);
+//                    byte[] buffer = new byte[is.available()];
+//                    is.read(buffer);
+//                    outputStream.write(buffer);
+        outputStream.close();
+        is.close();
+
+        return file;
     }
 }

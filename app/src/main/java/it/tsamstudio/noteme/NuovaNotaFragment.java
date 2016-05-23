@@ -10,7 +10,6 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -18,7 +17,6 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,10 +35,7 @@ import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
@@ -56,6 +51,7 @@ import it.tsamstudio.noteme.utils.NoteMeUtils;
 public class NuovaNotaFragment extends DialogFragment {
 
     private static final String TAG = "NuovaNotaFragment";
+    public static final int CAMERA_REQUEST = 1888;
 
     private View dialogView;
     private TextView titolo, etxtNota, titoloAudio;
@@ -217,7 +213,6 @@ public class NuovaNotaFragment extends DialogFragment {
         bottomNavigation.addItem(item2);
         bottomNavigation.addItem(item3);
 
-        //bottomBar = setupBottomBar(dialogView, savedInstanceState);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogView);
 
@@ -229,7 +224,6 @@ public class NuovaNotaFragment extends DialogFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
     }
 
     private void updateBottomMenu() {
@@ -374,13 +368,11 @@ public class NuovaNotaFragment extends DialogFragment {
         };
     }
 
-    private static final int CAMERA_REQUEST = 1888;
-
     public void takeImageFromCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File photoFile = null;
         try {
-            photoFile = createImageFile();
+            photoFile = NoteMeUtils.createImageFile();
         } catch (IOException ex) {
             ex.printStackTrace();
             // Error occurred while creating the File
@@ -403,21 +395,21 @@ public class NuovaNotaFragment extends DialogFragment {
             // immagine.setImageBitmap(bitmap); TODO ora come ora fa crashare l'app perchè 'immagine' non esiste
         }
     }*/
-
-    private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getActivity().getExternalFilesDir(
-                Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        imageOutputPath = image.getAbsolutePath();
-        return image;
-    }
+//
+//    private File createImageFile() throws IOException {
+//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+//        String imageFileName = "JPEG_" + timeStamp + "_";
+//        File storageDir = getActivity().getExternalFilesDir(
+//                Environment.DIRECTORY_PICTURES);
+//        File image = File.createTempFile(
+//                imageFileName,  /* prefix */
+//                ".jpg",         /* suffix */
+//                storageDir      /* directory */
+//        );
+//
+//        imageOutputPath = image.getAbsolutePath();
+//        return image;
+//    }
 
     private void setAudioPreview() {
 
@@ -487,6 +479,7 @@ public class NuovaNotaFragment extends DialogFragment {
 
     public void activityResult(final Intent intent) {
         immagine.setVisibility(View.VISIBLE);
+
         new AsyncTask<Void, Void, Void>() {
             File file;
 
@@ -499,14 +492,8 @@ public class NuovaNotaFragment extends DialogFragment {
             protected Void doInBackground(Void... params) {
                 try {
                     // salvo una copia dell'immagine in una directory a parte
-                    InputStream is = getContext().getContentResolver().openInputStream(intent.getData());
-                    file = createImageFile();
-                    OutputStream outputStream = new FileOutputStream(file);
-                    byte[] buffer = new byte[is.available()];
-                    is.read(buffer);
-                    outputStream.write(buffer);
-                    outputStream.close();
-                    is.close();
+                    file = NoteMeUtils.saveCompressedPicture(intent.getData(), 50);
+
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {

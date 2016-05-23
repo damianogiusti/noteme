@@ -23,6 +23,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.couchbase.lite.CouchbaseLiteException;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -174,7 +175,7 @@ public class MostraNotaFragment extends DialogFragment {
             seekbarTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
+                    txtTimer.setText(AudioPlayerManager.formatTiming(progress));
                 }
 
                 @Override
@@ -210,11 +211,30 @@ public class MostraNotaFragment extends DialogFragment {
         // se ho una nota con immagine mostro l'immagine, altrimenti non mostro nulla
         imgThumbnail = (ImageView) dialogNoteView.findViewById(R.id.imgThumbnail);
         if (nota.getImage() != null) {
+            Log.d(TAG, "onCreateDialog: ho una immagine");
+            Log.d(TAG, "onCreateDialog: " + nota.getImage());
             imgThumbnail.setVisibility(View.VISIBLE);
-            Picasso.with(getContext())
-                    .load(nota.getImage())
-                    .fit()
-                    .into(imgThumbnail);
+            imgThumbnail.post(new Runnable() {
+                @Override
+                public void run() {
+                    Picasso.with(getActivity())
+                            .load("file://" + nota.getImage())
+                            .resize(imgThumbnail.getWidth(), imgThumbnail.getHeight())
+                            .centerCrop()
+                            .into(imgThumbnail, new Callback() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.d(TAG, "onSuccess: picasso loaded");
+                                }
+
+                                @Override
+                                public void onError() {
+                                    Log.e(TAG, "onError: picasso error");
+                                }
+                            });
+                }
+            });
+
         } else {
             imgThumbnail.setVisibility(View.GONE);
         }
@@ -249,7 +269,7 @@ public class MostraNotaFragment extends DialogFragment {
         nota.setTitle((title.length() > 0) ? title : getString(R.string.nota_senza_titolo));
         nota.setLastModifiedDate(new Date());
 
-        if ((title.length() > 0 && text.length() >  0)
+        if ((title.length() > 0 && text.length() > 0)
                 || (title.length() > 0 && text.length() == 0)
                 || (title.length() == 0 && text.length() > 0)) {
             nota.setText(txtContent.getText().toString());

@@ -26,6 +26,8 @@ import com.github.brnunes.swipeablerecyclerview.SwipeableRecyclerViewTouchListen
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 
 public class HomeActivity extends AppCompatActivity
@@ -316,6 +318,12 @@ public class HomeActivity extends AppCompatActivity
     public void onNuovaNotaAggiunta(Nota nota) {
         if (nota != null) {
             notesList.add(nota);
+            Collections.sort(notesList, new Comparator<Nota>() {
+                @Override
+                public int compare(Nota lhs, Nota rhs) {
+                    return lhs.getLastModifiedDate().compareTo(rhs.getLastModifiedDate());
+                }
+            });
             mAdapter.notifyDataSetChanged();
         }
     }
@@ -341,8 +349,12 @@ public class HomeActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == GALLERY_CODE && resultCode == RESULT_OK) {
+        // se ricevo un intent da galleria o da fotocamera
+        // chiamo il metodo del fragment che salva la foto compressa
+        if ((requestCode == GALLERY_CODE || requestCode == CAMERA_CODE)
+                && resultCode == RESULT_OK) {
             nuovaNotaFragment.activityResult(data);
+            return;
         }
 
     }
