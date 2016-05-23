@@ -22,8 +22,6 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import it.tsamstudio.noteme.NoteMeApp;
-
 /**
  * Created by damiano on 16/05/16.
  */

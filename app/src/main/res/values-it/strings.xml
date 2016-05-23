@@ -13,4 +13,6 @@
     <string name="nota_senza_titolo">senza titolo</string>
     <string name="eliminare_nota">Eliminare la nota audio?</string>
     <string name="elimina">Elimina</string>
+    <string name="aggiungi_tag">aggiungi tag</string>
+    <string name="stop">Stop</string>
 </resources>

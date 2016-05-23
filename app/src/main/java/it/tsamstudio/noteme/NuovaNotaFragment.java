@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -28,10 +27,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
-import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
-import com.aurelhubert.ahbottomnavigation.AHClickListener;
 import com.couchbase.lite.CouchbaseLiteException;
+import com.michaldrabik.tapbarmenulib.TapBarMenu;
 import com.nhaarman.supertooltips.ToolTip;
 import com.nhaarman.supertooltips.ToolTipRelativeLayout;
 import com.nhaarman.supertooltips.ToolTipView;
@@ -73,8 +70,12 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private Date expirationDate = null;
     private ImageView immagine, immagineAudio;
     private RelativeLayout relativeLayout;
-    AHBottomNavigation bottomNavigation;
-    private AHBottomNavigationItem item1, item2, item3, itemExpirationDate;
+
+    private TapBarMenu tapBarMenu;
+    private ImageView menuImgAttach;
+    private ImageView menuImgMic;
+    private ImageView menuImgCamera;
+    private ImageView itemExpirationDate;
 
     private Snackbar timeProgressSnackbar;
     private Timer recordingTimer;
@@ -102,6 +103,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 
     @Override
     public void onToolTipViewClicked(ToolTipView toolTipView) {
+        toolTipView.setVisibility(View.VISIBLE);
         Log.d("CLICK ON POPUP", "DEBUG BEAUTIFUL TIP TOOL");
     }
 
@@ -169,7 +171,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         titolo = (TextView) dialogView.findViewById(R.id.etxtTitolo);
         etxtNota = (TextView) dialogView.findViewById(R.id.etxtNota);
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
-        tag = (TextView) dialogView.findViewById(R.id.chosenTag);
 
         // TODO qui non prende l'imageView giusta, bisogna fare il layout per la visualizzazione
         immagine = (ImageView) dialogView.findViewById(R.id.immagine);
@@ -187,68 +188,55 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         ToolTipRelativeLayout toolTipRelativeLayout = (ToolTipRelativeLayout) dialogView.findViewById(R.id.tooltipRelativeLayout);
 
         ToolTip toolTip = new ToolTip()
-//                .withContentView(dialogView.findViewById()) // per contenuto customizzato
-                .withText("Insert tag here")
-                .withColor(Color.RED)
+                .withContentView(LayoutInflater.from(getActivity()).inflate(R.layout.edittext_layout_tooltip, null)) // per contenuto customizzato
+//                .withText("Insert tag here")
+                .withColor(getResources().getColor(R.color.colorAccent))
                 .withShadow();
-        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.redtv));
-        myToolTipView.setOnToolTipViewClickedListener(this);
+//        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.menuImgExpireDate));
+//        myToolTipView.setOnToolTipViewClickedListener(this);
 
-        bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
+        tapBarMenu = (TapBarMenu) dialogView.findViewById(R.id.tapBarMenu);
 
-
-        item1 = new AHBottomNavigationItem("", R.drawable.ic_attach_file_white_48dp);
-        item1.setListener(new AHClickListener() {
+        tapBarMenu.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClickListener(View view) {
-
-            }
-
-            @Override
-            public boolean onLongClickListener(View view) {
-                listener.onButtonClick(HomeActivity.GALLERY_CODE);
-                Log.d("onLongPress", "" + bottomNavigation.getCurrentItem());
-                return true;
+            public void onClick(View v) {
+                tapBarMenu.toggle();
             }
         });
 
-        item2 = new AHBottomNavigationItem("", R.drawable.ic_mic_white_48dp);
-        item2.setListener(new AHClickListener() {
+        menuImgAttach = ((ImageView) dialogView.findViewById(R.id.menuImgAttach));
+        menuImgAttach.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClickListener(View view) {
-                //startRecording();
+            public void onClick(View view) {
+                listener.onButtonClick(HomeActivity.GALLERY_CODE);
+//                Log.d("onLongPress", "" + tapBarMenu.getCurrentItem());
             }
+        });
 
+        menuImgMic = ((ImageView) dialogView.findViewById(R.id.menuImgMic));
+        menuImgMic.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClickListener(View view) {
-                Log.d("onLongPress", "" + bottomNavigation.getCurrentItem());
+            public void onClick(View view) {
                 if (!isRecording) {
                     startRecording();
                 } else {
                     stopRecording();
                 }
-                return true;
             }
         });
 
-        item3 = new AHBottomNavigationItem("", R.drawable.ic_add_a_photo_white_48dp);
-        item3.setListener(new AHClickListener() {
+        menuImgCamera = (ImageView)dialogView.findViewById(R.id.menuImgCamera);
+        menuImgCamera.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClickListener(View view) {
-
-            }
-
-            @Override
-            public boolean onLongClickListener(View view) {
+            public void onClick(View view) {
                 takeImageFromCamera();
-                return false;
             }
         });
 
-        itemExpirationDate = new AHBottomNavigationItem("", R.drawable.ic_date_cal);
-        itemExpirationDate.setListener(new AHClickListener() {
+        itemExpirationDate = (ImageView) dialogView.findViewById(R.id.menuImgExpireDate);
+        itemExpirationDate.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClickListener(View view) {
+            public void onClick(View view) {
                 expirationDate = null;
                 Log.d(TAG, "onClickListener: ");
                 showExpirationDateDialogs(new Callback() {
@@ -260,17 +248,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                     }
                 });
             }
-
-            @Override
-            public boolean onLongClickListener(View view) {
-                return false;
-            }
         });
 
-        bottomNavigation.addItem(item1);
-        bottomNavigation.addItem(item2);
-        bottomNavigation.addItem(item3);
-        bottomNavigation.addItem(itemExpirationDate);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogView);
 
@@ -285,27 +264,25 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void updateBottomMenu() {
-        item1.setEnabled(true);
-        item2.setEnabled(true);
-        item3.setEnabled(true);
+        menuImgAttach.setEnabled(true);
+        menuImgMic.setEnabled(true);
+        menuImgCamera.setEnabled(true);
 
-        if (item1 != null && item2 != null && item3 != null) {
+        if (menuImgAttach != null && menuImgMic != null && menuImgCamera != null) {
             if (imageOutputPath != null) {
-                item1.setEnabled(false);
-                item3.setEnabled(false);
+                menuImgAttach.setEnabled(false);
+                menuImgCamera.setEnabled(false);
             } else if (audioOutputPath != null) {
-                item2.setEnabled(false);
+                menuImgMic.setEnabled(false);
             }
         }
-
-        bottomNavigation.notifyItemsChanged();
     }
 
     //metodo chiamato quando viene chiuso il dialog per salvare la etxtNota
     private Nota saveNote() {
         String titoloTemp = titolo.getText().toString().trim();
         String testoTemp = etxtNota.getText().toString().trim();
-        String testoTag = tag.getText().toString().trim();
+//        String testoTag = tag.getText().toString().trim();
 
         if (titoloTemp.length() > 0 || testoTemp.length() > 0 ||
                 (audioOutputPath != null && audioOutputPath.trim().length() > 0) ||
@@ -315,7 +292,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
             nota.setText("" + testoTemp);
-            nota.setTag("" + testoTag);
+//            nota.setTag("" + testoTag);
             nota.setCreationDate(new Date());
             nota.setLastModifiedDate(new Date());
             // TODO set data scadenza
@@ -352,6 +329,14 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             isRecording = true;
 
             timeProgressSnackbar = Snackbar.make(relativeLayout, getString(R.string.sto_registrando) + " - 00:00", Snackbar.LENGTH_INDEFINITE);
+            timeProgressSnackbar.setAction(getString(R.string.stop), new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    stopRecording();
+                    timeProgressSnackbar.dismiss();
+                    tapBarMenu.setVisibility(View.VISIBLE);
+                }
+            });
             timeProgressSnackbar.show();
             recordingTimer = new Timer();
             recordingTimer.schedule(createTimerTask(), 1000, 1000);
@@ -492,6 +477,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                                 audioOutputPath = null;
                                 titoloAudio.setVisibility(View.GONE);
                                 immagineAudio.setVisibility(View.GONE);
+                                updateBottomMenu();
                             }
                         })
                         .setNegativeButton(R.string.annulla, new DialogInterface.OnClickListener() {

@@ -19,4 +19,6 @@
     <string name="nota_senza_titolo">no title</string>
     <string name="eliminare_nota">Confirm deletion of recorded audio?</string>
     <string name="elimina">Delete</string>
+    <string name="aggiungi_tag">aggiungi tag</string>
+    <string name="stop">Stop</string>
 </resources>

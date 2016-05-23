@@ -1,4 +1,4 @@
-package it.tsamstudio.noteme;
+package it.tsamstudio.noteme.utils;
 
 import android.app.Application;
 

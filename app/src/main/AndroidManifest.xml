@@ -12,7 +12,7 @@
 
 
     <application
-        android:name=".NoteMeApp"
+        android:name=".utils.NoteMeApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

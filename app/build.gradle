@@ -10,6 +10,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        generatedDensities = []
     }
     buildTypes {
         release {
@@ -43,5 +44,5 @@ dependencies {
     compile 'com.github.brnunes:swipeablerecyclerview:1.0.2'
     compile 'com.nhaarman.supertooltips:library:3.0.0'
     compile 'com.wdullaer:materialdatetimepicker:2.3.0'
-    compile project(':ahbottomnavigation')
+    compile 'com.github.michaldrabik:tapbarmenu:1.0.5'
 }
