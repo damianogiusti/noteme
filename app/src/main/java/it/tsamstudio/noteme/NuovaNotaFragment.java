@@ -4,6 +4,7 @@ package it.tsamstudio.noteme;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.MediaRecorder;
@@ -21,7 +22,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -48,6 +51,7 @@ import java.util.TimerTask;
 
 import it.tsamstudio.noteme.utils.AudioPlayerManager;
 import it.tsamstudio.noteme.utils.Callback;
+import it.tsamstudio.noteme.utils.NoteMeApp;
 import it.tsamstudio.noteme.utils.NoteMeUtils;
 
 
@@ -60,6 +64,14 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private static final String TAG_DATE_PICKER = "datepickerdialog";
     private static final String TAG_TIME_PICKER = "timepickerdialog";
     public static final int CAMERA_REQUEST = 1888;
+    // tag per ciclo di vita
+    private static final String TAG_KEYBOARD_FOR_BUNDLE = "iskeybboardshown";
+    private static final String TAG_AUDIO_PATH_FOR_BUNDLE = "audiopath";
+    private static final String TAG_IMAGE_PATH_FOR_BUNDLE = "imagepath";
+    private static final String TAG_EXPIRATION_DATE_FOR_BUNDLE = "expirationdatebundle";
+    private static final String TAG_IS_RECORDING_FOR_BUNDLE = "isrecordingmadafaka";
+    private static final String TAG_TITLE_NOTA_FOR_BUNDLE = "titolonotanelbundle";
+    private static final String TAG_BODY_NOTA_FOR_BUNDLE = "bodydellanotanelbundle";
 
     private View dialogView;
     private TextView titolo, etxtNota, titoloAudio, tag;
@@ -81,6 +93,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private Timer recordingTimer;
     private Date timerTime;
     private boolean isRecording;
+
+    private boolean isKeyboardShown;
 
     public ToolTipView myToolTipView;
 
@@ -185,6 +199,18 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         recordingTimer = new Timer();
         timerTime = new Date(0);
 
+        if (savedInstanceState != null) {
+            isKeyboardShown = savedInstanceState.getBoolean(TAG_KEYBOARD_FOR_BUNDLE);
+            showKeyboard(getDialog().getWindow());
+            audioOutputPath = savedInstanceState.getString(TAG_AUDIO_PATH_FOR_BUNDLE);
+            imageOutputPath = savedInstanceState.getString(TAG_IMAGE_PATH_FOR_BUNDLE);
+            expirationDate = (savedInstanceState.getLong(TAG_EXPIRATION_DATE_FOR_BUNDLE) > 0
+                    ? new Date(savedInstanceState.getLong(TAG_EXPIRATION_DATE_FOR_BUNDLE)) : null);
+            isRecording = savedInstanceState.getBoolean(TAG_IS_RECORDING_FOR_BUNDLE);
+            titolo.setText(savedInstanceState.getString(TAG_TITLE_NOTA_FOR_BUNDLE));
+            etxtNota.setText(savedInstanceState.getString(TAG_BODY_NOTA_FOR_BUNDLE));
+        }
+
         ToolTipRelativeLayout toolTipRelativeLayout = (ToolTipRelativeLayout) dialogView.findViewById(R.id.tooltipRelativeLayout);
 
         ToolTip toolTip = new ToolTip()
@@ -200,6 +226,10 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         tapBarMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (isKeyboardShown && tapBarMenu.isOpened()) {
+                    hideKeyboard(dialogView);
+                    return;
+                }
                 tapBarMenu.toggle();
             }
         });
@@ -225,7 +255,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             }
         });
 
-        menuImgCamera = (ImageView)dialogView.findViewById(R.id.menuImgCamera);
+        menuImgCamera = (ImageView) dialogView.findViewById(R.id.menuImgCamera);
         menuImgCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -254,13 +284,42 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         builder.setView(dialogView);
 
         Dialog dialog = builder.create();
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        showKeyboard(dialog.getWindow());
         return dialog;
+    }
+
+    private void showKeyboard(Window window) {
+        if (!isKeyboardShown) {
+//            InputMethodManager imm = (InputMethodManager) NoteMeApp.getInstance().getSystemService(Context.INPUT_METHOD_SERVICE);
+//            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            isKeyboardShown = true;
+        }
+    }
+
+    private void hideKeyboard(View view) {
+        if (isKeyboardShown) {
+            InputMethodManager imm = (InputMethodManager) NoteMeApp.getInstance().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            isKeyboardShown = false;
+        }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putBoolean(TAG_KEYBOARD_FOR_BUNDLE, isKeyboardShown);
+        outState.putString(TAG_AUDIO_PATH_FOR_BUNDLE, audioOutputPath);
+        outState.putString(TAG_IMAGE_PATH_FOR_BUNDLE, imageOutputPath);
+        outState.putLong(TAG_EXPIRATION_DATE_FOR_BUNDLE,
+                (expirationDate != null) ? expirationDate.getTime() : 0);
+        outState.putBoolean(TAG_IS_RECORDING_FOR_BUNDLE, isRecording);
+        if (titolo != null) {
+            outState.putString(TAG_TITLE_NOTA_FOR_BUNDLE, titolo.getText().toString());
+        }
+        if (etxtNota != null) {
+            outState.putString(TAG_BODY_NOTA_FOR_BUNDLE, etxtNota.getText().toString());
+        }
     }
 
     private void updateBottomMenu() {
@@ -268,11 +327,12 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         menuImgMic.setEnabled(true);
         menuImgCamera.setEnabled(true);
 
-        if (menuImgAttach != null && menuImgMic != null && menuImgCamera != null) {
+        if (menuImgAttach != null && menuImgMic != null && menuImgCamera != null) {     // non serve :/
             if (imageOutputPath != null) {
                 menuImgAttach.setEnabled(false);
                 menuImgCamera.setEnabled(false);
-            } else if (audioOutputPath != null) {
+            }
+            if (audioOutputPath != null) {
                 menuImgMic.setEnabled(false);
             }
         }
@@ -439,21 +499,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             // immagine.setImageBitmap(bitmap); TODO ora come ora fa crashare l'app perchè 'immagine' non esiste
         }
     }*/
-//
-//    private File createImageFile() throws IOException {
-//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-//        String imageFileName = "JPEG_" + timeStamp + "_";
-//        File storageDir = getActivity().getExternalFilesDir(
-//                Environment.DIRECTORY_PICTURES);
-//        File image = File.createTempFile(
-//                imageFileName,  /* prefix */
-//                ".jpg",         /* suffix */
-//                storageDir      /* directory */
-//        );
-//
-//        imageOutputPath = image.getAbsolutePath();
-//        return image;
-//    }
 
     private void setAudioPreview() {
 
@@ -555,10 +600,16 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                 imageOutputPath = file.getPath();
                 Log.d("IMAGE_PATH", imageOutputPath);
                 immagine.setVisibility(View.VISIBLE);
-                Picasso.with(getContext())
-                        .load(file)
-                        .fit()
-                        .into(immagine);
+                immagine.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Picasso.with(getContext())
+                                .load(file)
+                                .resize(immagine.getWidth(), immagine.getHeight())
+                                .centerCrop()
+                                .into(immagine);
+                    }
+                });
 
                 updateBottomMenu();
             }

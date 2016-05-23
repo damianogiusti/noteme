@@ -16,7 +16,7 @@
             <ImageView
                 android:id="@+id/immagine"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="150dp"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true" />
@@ -66,8 +66,11 @@
                     android:layout_below="@+id/etxtTitolo"
                     android:layout_marginBottom="60dp"
                     android:background="@android:color/transparent"
+                    android:capitalize="sentences"
                     android:gravity="start"
-                    android:hint="@string/inserisci_testo_qui" />
+                    android:hint="@string/inserisci_testo_qui"
+                    android:linksClickable="true"
+                    android:minHeight="50dp" />
 
                 <LinearLayout
                     android:id="@+id/audio"
@@ -81,8 +84,8 @@
 
                     <ImageView
                         android:id="@+id/imageAudio"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentStart="true"
                         android:layout_alignTop="@+id/textAudio" />
@@ -90,7 +93,7 @@
                     <TextView
                         android:id="@+id/textAudio"
                         android:layout_width="match_parent"
-                        android:layout_height="20dp"
+                        android:layout_height="30dp"
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:layout_below="@+id/etxtNota"

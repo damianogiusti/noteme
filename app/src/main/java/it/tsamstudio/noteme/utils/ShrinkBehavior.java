@@ -6,7 +6,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import com.michaldrabik.tapbarmenulib.TapBarMenu;
@@ -31,12 +30,10 @@ public class ShrinkBehavior extends CoordinatorLayout.Behavior<TapBarMenu> {
     public boolean onDependentViewChanged(CoordinatorLayout parent, TapBarMenu child, View dependency) {
         if (dependency instanceof Snackbar.SnackbarLayout) {
             float translationY = dependency.getTranslationY();
-            Log.d("onDependentViewChanged", "" + translationY);
-            Log.d("dependency.getHeight()", "" + dependency.getHeight());
-//            float percentComplete = translationY / dependency.getHeight();
 
             child.setScaleX(translationY / dependency.getWidth());
             child.setScaleY(translationY / dependency.getHeight());
+
             if (Math.floor(dependency.getTranslationY()) == 0) {
                 child.setScaleX(1);
                 child.setScaleY(1);
