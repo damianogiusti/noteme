@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -122,6 +123,7 @@ public class MostraNotaFragment extends DialogFragment {
         txtContent.setText(nota.getText());
         txtContent.setFocusableInTouchMode(false);
         txtContent.setClickable(true);
+        Linkify.addLinks(txtContent, Linkify.WEB_URLS);
         txtContent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
