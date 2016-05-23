@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
@@ -35,6 +36,8 @@ import java.util.Date;
  * Created by damiano on 16/05/16.
  */
 public class NoteMeUtils {
+
+    private static final String TAG = "NoteMeUtils";
 
     public static final int MY_PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
     public static final int MY_PERMISSIONS_REQUEST_STORAGE = 2;
@@ -170,7 +173,7 @@ public class NoteMeUtils {
 
     private static Animator animatorInstance;
 
-    public static Animator getInstance() {
+    public static Animator getAnimatorInstance() {
         return animatorInstance;
     }
 
@@ -185,10 +188,12 @@ public class NoteMeUtils {
     public static void zoomImageFromThumb(View container,
                                           final ImageView expandedImageView,
                                           final View thumbView,
-                                          String path) {
+                                          String path,
+                                          final Callback callback) {
 
-        final int mShortAnimationDuration = NoteMeApp.getInstance().getResources().getInteger(
-                android.R.integer.config_shortAnimTime);
+        final int shortAnimationDuration = NoteMeApp.getInstance()
+                .getResources().getInteger(android.R.integer.config_shortAnimTime);
+
         // If there's an animation in progress, cancel it
         // immediately and proceed with this one.
         if (animatorInstance != null) {
@@ -211,6 +216,7 @@ public class NoteMeUtils {
         // properties (X, Y).
         thumbView.getGlobalVisibleRect(startBounds);
         container.getGlobalVisibleRect(finalBounds, globalOffset);
+        Log.d(TAG, String.format("zoomImageFromThumb: globalOffset(%s;%s)", globalOffset.x, globalOffset.y));
         startBounds.offset(-globalOffset.x, -globalOffset.y);
         finalBounds.offset(-globalOffset.x, -globalOffset.y);
 
@@ -259,7 +265,7 @@ public class NoteMeUtils {
                 .with(ObjectAnimator.ofFloat(expandedImageView, View.SCALE_X,
                         startScale, 1f)).with(ObjectAnimator.ofFloat(expandedImageView,
                 View.SCALE_Y, startScale, 1f));
-        set.setDuration(mShortAnimationDuration);
+        set.setDuration(shortAnimationDuration);
         set.setInterpolator(new DecelerateInterpolator());
         set.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -275,50 +281,59 @@ public class NoteMeUtils {
         set.start();
         animatorInstance = set;
 
+        Log.d(TAG, "onAnimation: ");
+        callback.call(true);
+
         // Upon clicking the zoomed-in image, it should zoom back down
         // to the original bounds and show the thumbnail instead of
         // the expanded image.
         final float startScaleFinal = startScale;
+
+        // Animate the four positioning/sizing properties in parallel,
+        // back to their original values.
+        final AnimatorSet closingSet = new AnimatorSet();
+        closingSet.play(ObjectAnimator
+                .ofFloat(expandedImageView, View.X, startBounds.left))
+                .with(ObjectAnimator
+                        .ofFloat(expandedImageView,
+                                View.Y, startBounds.top))
+                .with(ObjectAnimator
+                        .ofFloat(expandedImageView,
+                                View.SCALE_X, startScaleFinal))
+                .with(ObjectAnimator
+                        .ofFloat(expandedImageView,
+                                View.SCALE_Y, startScaleFinal));
+        closingSet.setDuration(shortAnimationDuration);
+        closingSet.setInterpolator(new DecelerateInterpolator());
+        closingSet.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                thumbView.setAlpha(1f);
+                expandedImageView.setVisibility(View.GONE);
+                animatorInstance = null;
+                Log.d(TAG, "onAnimationEnd: ");
+                callback.call(false);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                thumbView.setAlpha(1f);
+                expandedImageView.setVisibility(View.GONE);
+                Log.d(TAG, "onAnimationCancel: ");
+                animatorInstance = null;
+                callback.call(false);
+            }
+        });
+        animatorInstance = closingSet;
+        Log.d(TAG, "impostato closing set");
+
         expandedImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (animatorInstance != null) {
                     animatorInstance.cancel();
                 }
-
-                // Animate the four positioning/sizing properties in parallel,
-                // back to their original values.
-                AnimatorSet set = new AnimatorSet();
-                set.play(ObjectAnimator
-                        .ofFloat(expandedImageView, View.X, startBounds.left))
-                        .with(ObjectAnimator
-                                .ofFloat(expandedImageView,
-                                        View.Y, startBounds.top))
-                        .with(ObjectAnimator
-                                .ofFloat(expandedImageView,
-                                        View.SCALE_X, startScaleFinal))
-                        .with(ObjectAnimator
-                                .ofFloat(expandedImageView,
-                                        View.SCALE_Y, startScaleFinal));
-                set.setDuration(mShortAnimationDuration);
-                set.setInterpolator(new DecelerateInterpolator());
-                set.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        thumbView.setAlpha(1f);
-                        expandedImageView.setVisibility(View.GONE);
-                        animatorInstance = null;
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-                        thumbView.setAlpha(1f);
-                        expandedImageView.setVisibility(View.GONE);
-                        animatorInstance = null;
-                    }
-                });
-                set.start();
-                animatorInstance = set;
+                closingSet.start();
             }
         });
     }

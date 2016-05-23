@@ -53,6 +53,7 @@ public class MostraNotaFragment extends DialogFragment {
     private TextView txtTimer;
     // anteprima immagine
     private ImageView imgThumbnail;
+    private boolean isZoomedImageShowing;
 
     private final static String NOTA_KEY_FOR_BUNDLE = "notaParceable";
     private final static String POSITION_KEY_FOR_BUNDLE = "posizioneNota";
@@ -240,9 +241,21 @@ public class MostraNotaFragment extends DialogFragment {
                 public void onClick(View v) {
                     NoteMeUtils.zoomImageFromThumb(
                             getActivity().findViewById(R.id.container),
-                            (ImageView) dialogNoteView.findViewById(R.id.expanded_image),
+                            (ImageView) getActivity().findViewById(R.id.expanded_image),
                             imgThumbnail,
-                            nota.getImage());
+                            nota.getImage(),
+                            new it.tsamstudio.noteme.utils.Callback() {
+                                @Override
+                                public void call(Object... args) {
+                                    if (args[0] instanceof Boolean)
+                                        isZoomedImageShowing = ((boolean) args[0]);
+                                    if (isZoomedImageShowing) {
+                                        dialogShowNote.hide();
+                                    } else {
+                                        dialogShowNote.show();
+                                    }
+                                }
+                            });
                 }
             });
 
@@ -297,6 +310,11 @@ public class MostraNotaFragment extends DialogFragment {
 
     public boolean onBackPressed() {
         Log.d(TAG, "onBackPressed: ");
+//        if (isZoomedImageShowing) {
+//            NoteMeUtils.getAnimatorInstance().start();
+//            return false;
+//        }
+
         if (txtTitle.isFocusableInTouchMode() || txtContent.isFocusableInTouchMode()) {
             txtTitle.setFocusableInTouchMode(false);
             txtContent.setFocusableInTouchMode(false);

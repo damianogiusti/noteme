@@ -221,7 +221,7 @@ public class HomeActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
 
-        if (fragmentMostraNota != null && fragmentMostraNota.isVisible())
+        if (fragmentMostraNota != null)
             if (!fragmentMostraNota.onBackPressed())
                 return;
 
