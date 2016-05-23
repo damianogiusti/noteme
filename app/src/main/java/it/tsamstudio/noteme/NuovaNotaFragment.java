@@ -72,11 +72,13 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private static final String TAG_IS_RECORDING_FOR_BUNDLE = "isrecordingmadafaka";
     private static final String TAG_TITLE_NOTA_FOR_BUNDLE = "titolonotanelbundle";
     private static final String TAG_BODY_NOTA_FOR_BUNDLE = "bodydellanotanelbundle";
+    private static final String TAG_GUID_FOR_BUNDLE = "tagguidforbundle";
 
     private View dialogView;
     private TextView titolo, etxtNota, titoloAudio, tag;
     private MediaRecorder mRecorder;
 
+    private String guid;
     private String audioOutputPath = null;
     private String imageOutputPath = null;
     private Date expirationDate = null;
@@ -162,9 +164,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     @Override
     public void onDetach() {
         super.onDetach();
-        listener.onNuovaNotaAggiunta(saveNote());
-        imageOutputPath = null;
-        audioOutputPath = null;
         Log.d(TAG, "onDETACH");
     }
 
@@ -198,17 +197,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 
         recordingTimer = new Timer();
         timerTime = new Date(0);
-
-        if (savedInstanceState != null) {
-            isKeyboardShown = savedInstanceState.getBoolean(TAG_KEYBOARD_FOR_BUNDLE);
-            audioOutputPath = savedInstanceState.getString(TAG_AUDIO_PATH_FOR_BUNDLE);
-            imageOutputPath = savedInstanceState.getString(TAG_IMAGE_PATH_FOR_BUNDLE);
-            expirationDate = (savedInstanceState.getLong(TAG_EXPIRATION_DATE_FOR_BUNDLE) > 0
-                    ? new Date(savedInstanceState.getLong(TAG_EXPIRATION_DATE_FOR_BUNDLE)) : null);
-            isRecording = savedInstanceState.getBoolean(TAG_IS_RECORDING_FOR_BUNDLE);
-            titolo.setText(savedInstanceState.getString(TAG_TITLE_NOTA_FOR_BUNDLE));
-            etxtNota.setText(savedInstanceState.getString(TAG_BODY_NOTA_FOR_BUNDLE));
-        }
 
         ToolTipRelativeLayout toolTipRelativeLayout = (ToolTipRelativeLayout) dialogView.findViewById(R.id.tooltipRelativeLayout);
 
@@ -286,6 +274,30 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         return dialog;
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            guid = savedInstanceState.getString(TAG_GUID_FOR_BUNDLE);
+            isKeyboardShown = savedInstanceState.getBoolean(TAG_KEYBOARD_FOR_BUNDLE);
+            audioOutputPath = savedInstanceState.getString(TAG_AUDIO_PATH_FOR_BUNDLE);
+            Log.d(TAG, "onActivityCreated: " + audioOutputPath);
+            if (audioOutputPath != null) {
+                setAudioPreview();
+            }
+            imageOutputPath = savedInstanceState.getString(TAG_IMAGE_PATH_FOR_BUNDLE);
+            Log.d(TAG, "onActivityCreated: " + imageOutputPath);
+            if (imageOutputPath != null) {
+                setImagePreview();
+            }
+            expirationDate = (savedInstanceState.getLong(TAG_EXPIRATION_DATE_FOR_BUNDLE) > 0
+                    ? new Date(savedInstanceState.getLong(TAG_EXPIRATION_DATE_FOR_BUNDLE)) : null);
+            isRecording = savedInstanceState.getBoolean(TAG_IS_RECORDING_FOR_BUNDLE);
+            titolo.setText(savedInstanceState.getString(TAG_TITLE_NOTA_FOR_BUNDLE));
+            etxtNota.setText(savedInstanceState.getString(TAG_BODY_NOTA_FOR_BUNDLE));
+        }
+    }
+
     private void showKeyboard(Window window) {
         if (!isKeyboardShown)
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
@@ -299,6 +311,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        listener.onNuovaNotaAggiunta(saveNote());
+        outState.putString(TAG_GUID_FOR_BUNDLE, guid);
         outState.putBoolean(TAG_KEYBOARD_FOR_BUNDLE, isKeyboardShown);
         outState.putString(TAG_AUDIO_PATH_FOR_BUNDLE, audioOutputPath);
         outState.putString(TAG_IMAGE_PATH_FOR_BUNDLE, imageOutputPath);
@@ -311,6 +325,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         if (etxtNota != null) {
             outState.putString(TAG_BODY_NOTA_FOR_BUNDLE, etxtNota.getText().toString());
         }
+        imageOutputPath = null;
+        audioOutputPath = null;
     }
 
     private void updateBottomMenu() {
@@ -333,13 +349,20 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private Nota saveNote() {
         String titoloTemp = titolo.getText().toString().trim();
         String testoTemp = etxtNota.getText().toString().trim();
-//        String testoTag = tag.getText().toString().trim();
+        Log.d(TAG, String.format("saveNote: %s, %s", titoloTemp, testoTemp));
 
         if (titoloTemp.length() > 0 || testoTemp.length() > 0 ||
                 (audioOutputPath != null && audioOutputPath.trim().length() > 0) ||
                 (imageOutputPath != null && imageOutputPath.trim().length() > 0)) {   //se c'è almeno uno dei parametri
 
-            Nota nota = new Nota();
+            CouchbaseDB db = new CouchbaseDB(getContext());
+            Nota nota;
+            if (guid == null) {
+                nota = new Nota();
+            } else {
+                nota = db.leggiNota(guid);
+            }
+            guid = nota.getID();
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
             nota.setText("" + testoTemp);
@@ -350,10 +373,9 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             nota.setAudio(audioOutputPath);
             nota.setImage(imageOutputPath);
 
-            CouchbaseDB db = new CouchbaseDB(getContext());
             try {
                 db.salvaNota(nota);
-//                Toast.makeText(getContext(), "Nota salvata", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "saveNote: nota salvata");
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (CouchbaseLiteException e) {
@@ -361,7 +383,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             }
             return nota;
         } else {
-//            Toast.makeText(getContext(), "Nota non salvata", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "saveNote: nota non salvata");
         }
         return null;
     }
@@ -590,54 +612,57 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 imageOutputPath = file.getPath();
-                Log.d("IMAGE_PATH", imageOutputPath);
-                immagine.setVisibility(View.VISIBLE);
-                immagine.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
-                        dialogBuilder.setMessage(getString(R.string.eliminare_foto))
-                                .setPositiveButton(getString(R.string.elimina), new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        if (imageOutputPath != null) {
-                                            File file = new File(imageOutputPath);
-                                            if (file.exists()) {
-                                                if (file.delete()) {
-                                                    immagine.setVisibility(View.GONE);
-                                                    imageOutputPath = null;
-                                                    updateBottomMenu();
-                                                }
-                                            }
-                                        }
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .setNegativeButton(getString(R.string.annulla), new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.dismiss();
-                                    }
-                                });
-                        Dialog dialog = dialogBuilder.create();
-                        dialog.show();
-                        return false;
-                    }
-                });
-                immagine.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Picasso.with(getContext())
-                                .load(file)
-                                .resize(immagine.getWidth(), immagine.getHeight())
-                                .centerCrop()
-                                .into(immagine);
-                    }
-                });
-
+                setImagePreview();
                 updateBottomMenu();
             }
         }.execute();
+    }
+
+    private void setImagePreview() {
+        Log.d("IMAGE_PATH", imageOutputPath);
+        immagine.setVisibility(View.VISIBLE);
+        immagine.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+                dialogBuilder.setMessage(getString(R.string.eliminare_foto))
+                        .setPositiveButton(getString(R.string.elimina), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (imageOutputPath != null) {
+                                    File file = new File(imageOutputPath);
+                                    if (file.exists()) {
+                                        if (file.delete()) {
+                                            immagine.setVisibility(View.GONE);
+                                            imageOutputPath = null;
+                                            updateBottomMenu();
+                                        }
+                                    }
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .setNegativeButton(getString(R.string.annulla), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                Dialog dialog = dialogBuilder.create();
+                dialog.show();
+                return false;
+            }
+        });
+        immagine.post(new Runnable() {
+            @Override
+            public void run() {
+                Picasso.with(getContext())
+                        .load(new File(imageOutputPath))
+                        .resize(immagine.getWidth(), immagine.getHeight())
+                        .centerCrop()
+                        .into(immagine);
+            }
+        });
     }
 
     private void showExpirationDateDialogs(final Callback callback) {

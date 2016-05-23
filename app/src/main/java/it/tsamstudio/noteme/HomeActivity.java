@@ -62,12 +62,19 @@ public class HomeActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        if (savedInstanceState != null) {
+            nuovaNotaFragment = ((NuovaNotaFragment) getSupportFragmentManager().getFragment(savedInstanceState, TAG_DIALOG_NUOVA_NOTA));
+            fragmentMostraNota = ((MostraNotaFragment) getSupportFragmentManager().getFragment(savedInstanceState, TAG_DIALOG_MOSTRA_NOTA));
+        }
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null) {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    nuovaNotaFragment = NuovaNotaFragment.newInstance();
+                    if (nuovaNotaFragment == null) {
+                        nuovaNotaFragment = NuovaNotaFragment.newInstance();
+                    }
                     nuovaNotaFragment.show(getSupportFragmentManager(), TAG_DIALOG_NUOVA_NOTA);
                 }
             });
@@ -273,22 +280,37 @@ public class HomeActivity extends AppCompatActivity
         return true;
     }
 
-    //onClick della nota da implementare
     @Override
     protected void onResume() {
         super.onResume();
-        ((NotesRecyclerViewAdapter) mAdapter).setOnItemClickListener(new NotesRecyclerViewAdapter
-                .MyClickListener() {
+        Log.d(TAG, "onResume: ");
+        mAdapter.setOnItemClickListener(new NotesRecyclerViewAdapter.MyClickListener() {
             @Override
             public void onItemClick(int position, View v) {
                 Log.d("DEBUG CLICK NOTA", "NOTA PREMUTA:" + position);
                 Nota n = notesList.get(position);
                 if (searchList != null)
                     n = searchList.get(position);
-                fragmentMostraNota = MostraNotaFragment.newInstance(n, position);
+
+                if (fragmentMostraNota == null) {
+                    fragmentMostraNota = MostraNotaFragment.newInstance(n, position);
+                }
                 fragmentMostraNota.show(getSupportFragmentManager(), TAG_DIALOG_MOSTRA_NOTA);
             }
         });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (nuovaNotaFragment != null &&
+                getSupportFragmentManager().findFragmentByTag(TAG_DIALOG_NUOVA_NOTA) != null) {
+            getSupportFragmentManager().putFragment(outState, TAG_DIALOG_NUOVA_NOTA, nuovaNotaFragment);
+        }
+        if (fragmentMostraNota != null &&
+                getSupportFragmentManager().findFragmentByTag(TAG_DIALOG_MOSTRA_NOTA) != null) {
+            getSupportFragmentManager().putFragment(outState, TAG_DIALOG_MOSTRA_NOTA, fragmentMostraNota);
+        }
     }
 
     //metodo per creare note a caso (per testare)
