@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -31,6 +32,9 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.aurelhubert.ahbottomnavigation.AHClickListener;
 import com.couchbase.lite.CouchbaseLiteException;
+import com.nhaarman.supertooltips.ToolTip;
+import com.nhaarman.supertooltips.ToolTipRelativeLayout;
+import com.nhaarman.supertooltips.ToolTipView;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -48,13 +52,13 @@ import it.tsamstudio.noteme.utils.NoteMeUtils;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NuovaNotaFragment extends DialogFragment {
+public class NuovaNotaFragment extends DialogFragment implements View.OnClickListener, ToolTipView.OnToolTipViewClickedListener{
 
     private static final String TAG = "NuovaNotaFragment";
     public static final int CAMERA_REQUEST = 1888;
 
     private View dialogView;
-    private TextView titolo, etxtNota, titoloAudio;
+    private TextView titolo, etxtNota, titoloAudio, tag;
     private MediaRecorder mRecorder;
     private String audioOutputPath = null;
     private String imageOutputPath = null;
@@ -66,8 +70,9 @@ public class NuovaNotaFragment extends DialogFragment {
     private Snackbar timeProgressSnackbar;
     private Timer recordingTimer;
     private Date timerTime;
-
     private boolean isRecording;
+
+    public ToolTipView myToolTipView;
 
     INuovaNota listener = new INuovaNota() {
         @Override
@@ -80,6 +85,16 @@ public class NuovaNotaFragment extends DialogFragment {
 
         }
     };
+
+    @Override
+    public void onClick(View v) {
+
+    }
+
+    @Override
+    public void onToolTipViewClicked(ToolTipView toolTipView) {
+        Log.d("CLICK ON POPUP","DEBUG BEAUTIFUL TIP TOOL");
+    }
 
     public interface INuovaNota {
         void onNuovaNotaAggiunta(Nota nota);
@@ -145,6 +160,7 @@ public class NuovaNotaFragment extends DialogFragment {
         titolo = (TextView) dialogView.findViewById(R.id.etxtTitolo);
         etxtNota = (TextView) dialogView.findViewById(R.id.etxtNota);
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
+        tag = (TextView) dialogView.findViewById(R.id.chosenTag);
 
         // TODO qui non prende l'imageView giusta, bisogna fare il layout per la visualizzazione
         immagine = (ImageView) dialogView.findViewById(R.id.immagine);
@@ -159,7 +175,19 @@ public class NuovaNotaFragment extends DialogFragment {
         recordingTimer = new Timer();
         timerTime = new Date(0);
 
+
+        ToolTipRelativeLayout toolTipRelativeLayout = (ToolTipRelativeLayout) dialogView.findViewById(R.id.tooltipRelativeLayout);
+
+        ToolTip toolTip = new ToolTip()
+                //.withContentView(dialogView.findViewById()) per contenuto customizzato
+                .withText("Insert tag here")
+                .withColor(Color.RED)
+                .withShadow();
+        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.redtv));
+        myToolTipView.setOnToolTipViewClickedListener(this);
+
         bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
+
 
         item1 = new AHBottomNavigationItem("", R.drawable.ic_attach_file_white_48dp);
         item1.setListener(new AHClickListener() {
@@ -247,6 +275,7 @@ public class NuovaNotaFragment extends DialogFragment {
     private Nota saveNote() {
         String titoloTemp = titolo.getText().toString().trim();
         String testoTemp = etxtNota.getText().toString().trim();
+        String testoTag = tag.getText().toString().trim();
 
         if (titoloTemp.length() > 0 || testoTemp.length() > 0 ||
                 (audioOutputPath != null && audioOutputPath.trim().length() > 0) ||
@@ -255,8 +284,8 @@ public class NuovaNotaFragment extends DialogFragment {
             Nota nota = new Nota();
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
-
             nota.setText("" + testoTemp);
+            nota.setTag("" + testoTag);
             nota.setCreationDate(new Date());
             nota.setLastModifiedDate(new Date());
             // TODO set data scadenza
@@ -519,5 +548,4 @@ public class NuovaNotaFragment extends DialogFragment {
             }
         }.execute();
     }
-
 }
