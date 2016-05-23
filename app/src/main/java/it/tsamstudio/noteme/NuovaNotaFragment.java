@@ -201,7 +201,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 
         if (savedInstanceState != null) {
             isKeyboardShown = savedInstanceState.getBoolean(TAG_KEYBOARD_FOR_BUNDLE);
-            showKeyboard(getDialog().getWindow());
             audioOutputPath = savedInstanceState.getString(TAG_AUDIO_PATH_FOR_BUNDLE);
             imageOutputPath = savedInstanceState.getString(TAG_IMAGE_PATH_FOR_BUNDLE);
             expirationDate = (savedInstanceState.getLong(TAG_EXPIRATION_DATE_FOR_BUNDLE) > 0
@@ -288,7 +287,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void showKeyboard(Window window) {
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        if (!isKeyboardShown)
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
     }
 
     private void hideKeyboard(View view) {
@@ -353,7 +353,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             CouchbaseDB db = new CouchbaseDB(getContext());
             try {
                 db.salvaNota(nota);
-                Toast.makeText(getContext(), "Nota salvata", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getContext(), "Nota salvata", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (CouchbaseLiteException e) {
@@ -361,7 +361,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             }
             return nota;
         } else {
-            Toast.makeText(getContext(), "Nota non salvata", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getContext(), "Nota non salvata", Toast.LENGTH_SHORT).show();
         }
         return null;
     }
@@ -508,12 +508,13 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                             public void onClick(DialogInterface dialog, int which) {
                                 File file = new File(audioOutputPath);
                                 if (file.exists()) {
-                                    file.delete();
+                                    if (file.delete()) {
+                                        audioOutputPath = null;
+                                        titoloAudio.setVisibility(View.GONE);
+                                        immagineAudio.setVisibility(View.GONE);
+                                        updateBottomMenu();
+                                    }
                                 }
-                                audioOutputPath = null;
-                                titoloAudio.setVisibility(View.GONE);
-                                immagineAudio.setVisibility(View.GONE);
-                                updateBottomMenu();
                             }
                         })
                         .setNegativeButton(R.string.annulla, new DialogInterface.OnClickListener() {
@@ -591,6 +592,38 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                 imageOutputPath = file.getPath();
                 Log.d("IMAGE_PATH", imageOutputPath);
                 immagine.setVisibility(View.VISIBLE);
+                immagine.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+                        dialogBuilder.setMessage(getString(R.string.eliminare_foto))
+                                .setPositiveButton(getString(R.string.elimina), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        if (imageOutputPath != null) {
+                                            File file = new File(imageOutputPath);
+                                            if (file.exists()) {
+                                                if (file.delete()) {
+                                                    immagine.setVisibility(View.GONE);
+                                                    imageOutputPath = null;
+                                                    updateBottomMenu();
+                                                }
+                                            }
+                                        }
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .setNegativeButton(getString(R.string.annulla), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                });
+                        Dialog dialog = dialogBuilder.create();
+                        dialog.show();
+                        return false;
+                    }
+                });
                 immagine.post(new Runnable() {
                     @Override
                     public void run() {

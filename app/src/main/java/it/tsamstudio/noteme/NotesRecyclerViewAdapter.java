@@ -83,7 +83,7 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         String date = sd.format(d);
         holder.expirationDate.setText(date);
         holder.imgBackground.setImageDrawable(null);
-        holder.imgBackground.setAlpha(0.2f);
+        holder.imgBackground.setAlpha(0.25f);
 
         if (mDataset.get(position).getTag() != null &&
                 mDataset.get(position).getTag().trim().length() > 0) {

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import it.tsamstudio.noteme.utils.AudioPlayerManager;
+import it.tsamstudio.noteme.utils.NoteMeUtils;
 
 
 /**
@@ -232,6 +233,16 @@ public class MostraNotaFragment extends DialogFragment {
                                     Log.e(TAG, "onError: picasso error");
                                 }
                             });
+                }
+            });
+            imgThumbnail.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    NoteMeUtils.zoomImageFromThumb(
+                            getActivity().findViewById(R.id.container),
+                            (ImageView) dialogNoteView.findViewById(R.id.expanded_image),
+                            imgThumbnail,
+                            nota.getImage());
                 }
             });
 

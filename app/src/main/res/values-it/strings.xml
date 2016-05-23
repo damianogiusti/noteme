@@ -15,4 +15,5 @@
     <string name="elimina">Elimina</string>
     <string name="aggiungi_tag">aggiungi tag</string>
     <string name="stop">Stop</string>
+    <string name="eliminare_foto">Vuoi rimuovere l\'immagine allegata?</string>
 </resources>
