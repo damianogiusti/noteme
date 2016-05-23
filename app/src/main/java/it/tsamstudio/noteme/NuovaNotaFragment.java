@@ -226,9 +226,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         tapBarMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isKeyboardShown && tapBarMenu.isOpened()) {
+                if (tapBarMenu.isOpened()) {
                     hideKeyboard(dialogView);
-                    return;
                 }
                 tapBarMenu.toggle();
             }
@@ -289,20 +288,12 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void showKeyboard(Window window) {
-        if (!isKeyboardShown) {
-//            InputMethodManager imm = (InputMethodManager) NoteMeApp.getInstance().getSystemService(Context.INPUT_METHOD_SERVICE);
-//            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
-            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-            isKeyboardShown = true;
-        }
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
     }
 
     private void hideKeyboard(View view) {
-        if (isKeyboardShown) {
-            InputMethodManager imm = (InputMethodManager) NoteMeApp.getInstance().getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-            isKeyboardShown = false;
-        }
+        InputMethodManager imm = (InputMethodManager) NoteMeApp.getInstance().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     @Override
