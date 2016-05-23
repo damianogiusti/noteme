@@ -3,6 +3,10 @@ package it.tsamstudio.noteme.utils;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -60,5 +64,35 @@ public class NoteMeUtils {
     private static boolean isPermissionGranted(Activity activity, String permission) {
         return ContextCompat.checkSelfPermission(activity, permission)
                 == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public static Drawable resizeDrawable(Drawable drawable, int newWidth, int newHeight) {
+
+        if (!(drawable instanceof BitmapDrawable)) {
+            return null;
+        }
+        if (((BitmapDrawable) drawable).getBitmap() == null) {
+            return null;
+        }
+
+        Bitmap bitmapOrg = ((BitmapDrawable) drawable).getBitmap();
+// calculate the scale - in this case = 0.4f
+        float scaleWidth = ((float) newWidth) / bitmapOrg.getWidth();
+        float scaleHeight = ((float) newHeight) / bitmapOrg.getHeight();
+
+// createa matrix for the manipulation
+        Matrix matrix = new Matrix();
+// resize the bit map
+        matrix.postScale(scaleWidth, scaleHeight);
+
+// recreate the new Bitmap
+        Bitmap resizedBitmap = Bitmap.createBitmap(bitmapOrg, 0, 0,
+                bitmapOrg.getWidth(), bitmapOrg.getHeight(), matrix, true);
+
+// make a Drawable from Bitmap to allow to set the BitMap
+// to the ImageView, ImageButton or what ever
+        BitmapDrawable bmd = new BitmapDrawable(resizedBitmap);
+
+        return bmd;
     }
 }

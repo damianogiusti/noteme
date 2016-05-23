@@ -1,1 +1,1 @@
-include ':app', ':ahbottomnavigation', ':ahbottomnavigation-release'
+include ':app', ':ahbottomnavigation'

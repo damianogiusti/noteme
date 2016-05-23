@@ -1,6 +1,7 @@
 package it.tsamstudio.noteme;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
@@ -38,8 +39,9 @@ public class HomeActivity extends AppCompatActivity
     public static final int GALLERY_CODE = 2000;
     private static final String TAG_DIALOG_MOSTRA_NOTA = "dialogmostranota";
 
-    private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter, searchAdapter;
+    private RecyclerView recyclerView;
+    private NotesRecyclerViewAdapter mAdapter;
+    private RecyclerView.Adapter searchAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
     private NuovaNotaFragment nuovaNotaFragment;
@@ -84,7 +86,7 @@ public class HomeActivity extends AppCompatActivity
 
                 searchList = new ArrayList<>();
                 searchAdapter = new NotesRecyclerViewAdapter(searchList);
-                mRecyclerView.swapAdapter(searchAdapter, false);
+                recyclerView.swapAdapter(searchAdapter, false);
                 for (Nota x : notesList) {
                     if (x.getText().toLowerCase()
                             .contains(newText.toLowerCase().trim())) {
@@ -106,7 +108,7 @@ public class HomeActivity extends AppCompatActivity
                 searchList = null;
                 searchView.setQuery("", false);
                 searchView.setIconified(true);
-                mRecyclerView.swapAdapter(mAdapter, false);
+                recyclerView.swapAdapter(mAdapter, false);
                 searchList.clear();
             }
         });
@@ -121,13 +123,14 @@ public class HomeActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_for_notes);
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_for_notes);
+
         int colonne = 2;
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             colonne = 3;
         }
         mLayoutManager = new StaggeredGridLayoutManager(colonne, StaggeredGridLayoutManager.VERTICAL);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setLayoutManager(mLayoutManager);
 
         database = new CouchbaseDB(getApplicationContext());
         notesList = new ArrayList<>();
@@ -138,7 +141,7 @@ public class HomeActivity extends AppCompatActivity
         } catch (IOException e) {
             e.printStackTrace();
         }
-        SwipeableRecyclerViewTouchListener swipeListener = new SwipeableRecyclerViewTouchListener(mRecyclerView,
+        SwipeableRecyclerViewTouchListener swipeListener = new SwipeableRecyclerViewTouchListener(recyclerView,
                 new SwipeableRecyclerViewTouchListener.SwipeListener() {
                     @Override
                     public boolean canSwipeLeft(int position) {
@@ -202,9 +205,9 @@ public class HomeActivity extends AppCompatActivity
                         // TODO
                     }
                 });
-        mRecyclerView.addOnItemTouchListener(swipeListener);
+        recyclerView.addOnItemTouchListener(swipeListener);
         mAdapter = new NotesRecyclerViewAdapter(notesList);
-        mRecyclerView.setAdapter(mAdapter);
+        recyclerView.setAdapter(mAdapter);
     }
 
 
@@ -339,7 +342,7 @@ public class HomeActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == GALLERY_CODE && resultCode == RESULT_OK) {
-            nuovaNotaFragment.activityResult(data.getData());
+            nuovaNotaFragment.activityResult(data);
         }
 
     }

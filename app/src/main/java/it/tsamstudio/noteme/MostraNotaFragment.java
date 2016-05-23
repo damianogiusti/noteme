@@ -208,6 +208,7 @@ public class MostraNotaFragment extends DialogFragment {
         // se ho una nota con immagine mostro l'immagine, altrimenti non mostro nulla
         imgThumbnail = (ImageView) dialogNoteView.findViewById(R.id.imgThumbnail);
         if (nota.getImage() != null) {
+            imgThumbnail.setVisibility(View.VISIBLE);
             Picasso.with(getContext())
                     .load(nota.getImage())
                     .fit()
@@ -236,6 +237,7 @@ public class MostraNotaFragment extends DialogFragment {
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
         listener.onNotaModificata(updateNote(), getArguments().getInt(POSITION_KEY_FOR_BUNDLE));
+
     }
 
     private Nota updateNote() {
@@ -245,7 +247,7 @@ public class MostraNotaFragment extends DialogFragment {
         nota.setTitle((title.length() > 0) ? title : getString(R.string.nota_senza_titolo));
         nota.setLastModifiedDate(new Date());
 
-        if ((title.length() > 0 && text.length() > 0)
+        if ((title.length() > 0 && text.length() >  0)
                 || (title.length() > 0 && text.length() == 0)
                 || (title.length() == 0 && text.length() > 0)) {
             nota.setText(txtContent.getText().toString());

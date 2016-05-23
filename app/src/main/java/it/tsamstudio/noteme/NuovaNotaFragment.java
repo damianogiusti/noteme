@@ -6,10 +6,9 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -36,12 +35,17 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import it.tsamstudio.noteme.utils.AudioPlayerManager;
 import it.tsamstudio.noteme.utils.NoteMeUtils;
 
 
@@ -59,6 +63,8 @@ public class NuovaNotaFragment extends DialogFragment {
     private String imageOutputPath = null;
     private ImageView immagine, immagineAudio;
     private RelativeLayout relativeLayout;
+    AHBottomNavigation bottomNavigation;
+    private AHBottomNavigationItem item1, item2, item3;
 
     private Snackbar timeProgressSnackbar;
     private Timer recordingTimer;
@@ -80,6 +86,7 @@ public class NuovaNotaFragment extends DialogFragment {
 
     public interface INuovaNota {
         void onNuovaNotaAggiunta(Nota nota);
+
         void onButtonClick(int request);
     }
 
@@ -119,7 +126,8 @@ public class NuovaNotaFragment extends DialogFragment {
     public void onDetach() {
         super.onDetach();
         listener.onNuovaNotaAggiunta(saveNote());
-
+        imageOutputPath = null;
+        audioOutputPath = null;
         Log.d(TAG, "onDETACH");
     }
 
@@ -154,9 +162,9 @@ public class NuovaNotaFragment extends DialogFragment {
         recordingTimer = new Timer();
         timerTime = new Date(0);
 
-        final AHBottomNavigation bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
+        bottomNavigation = (AHBottomNavigation) dialogView.findViewById(R.id.bottomNavigation);
 
-        AHBottomNavigationItem item1 = new AHBottomNavigationItem("", R.drawable.ic_attach_file_white_48dp);
+        item1 = new AHBottomNavigationItem("", R.drawable.ic_attach_file_white_48dp);
         item1.setListener(new AHClickListener() {
             @Override
             public void onClickListener(View view) {
@@ -170,7 +178,8 @@ public class NuovaNotaFragment extends DialogFragment {
                 return true;
             }
         });
-        AHBottomNavigationItem item2 = new AHBottomNavigationItem("", R.drawable.ic_mic_white_48dp);
+
+        item2 = new AHBottomNavigationItem("", R.drawable.ic_mic_white_48dp);
         item2.setListener(new AHClickListener() {
             @Override
             public void onClickListener(View view) {
@@ -188,7 +197,8 @@ public class NuovaNotaFragment extends DialogFragment {
                 return true;
             }
         });
-        AHBottomNavigationItem item3 = new AHBottomNavigationItem("", R.drawable.ic_add_a_photo_white_48dp);
+
+        item3 = new AHBottomNavigationItem("", R.drawable.ic_add_a_photo_white_48dp);
         item3.setListener(new AHClickListener() {
             @Override
             public void onClickListener(View view) {
@@ -221,12 +231,32 @@ public class NuovaNotaFragment extends DialogFragment {
 
     }
 
+    private void updateBottomMenu() {
+        item1.setEnabled(true);
+        item2.setEnabled(true);
+        item3.setEnabled(true);
+
+        if (item1 != null && item2 != null && item3 != null) {
+            if (imageOutputPath != null) {
+                item1.setEnabled(false);
+                item3.setEnabled(false);
+            } else if (audioOutputPath != null) {
+                item2.setEnabled(false);
+            }
+        }
+
+        bottomNavigation.notifyItemsChanged();
+    }
+
     //metodo chiamato quando viene chiuso il dialog per salvare la etxtNota
     private Nota saveNote() {
         String titoloTemp = titolo.getText().toString().trim();
         String testoTemp = etxtNota.getText().toString().trim();
 
-        if (titoloTemp.length() > 0 || testoTemp.length() > 0) {   //se c'è almeno uno dei parametri
+        if (titoloTemp.length() > 0 || testoTemp.length() > 0 ||
+                (audioOutputPath != null && audioOutputPath.trim().length() > 0) ||
+                (imageOutputPath != null && imageOutputPath.trim().length() > 0)) {   //se c'è almeno uno dei parametri
+
             Nota nota = new Nota();
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
@@ -286,6 +316,7 @@ public class NuovaNotaFragment extends DialogFragment {
         }
         Toast.makeText(getContext(), "Registrazione salvata", Toast.LENGTH_SHORT).show();
         setAudioPreview();
+        updateBottomMenu();
     }
 
     private MediaRecorder setupRecorder() {
@@ -361,7 +392,7 @@ public class NuovaNotaFragment extends DialogFragment {
 
     }
 
-
+/*
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_REQUEST) {
             BitmapFactory.Options options = new BitmapFactory.Options();
@@ -370,7 +401,7 @@ public class NuovaNotaFragment extends DialogFragment {
 
             // immagine.setImageBitmap(bitmap); TODO ora come ora fa crashare l'app perchè 'immagine' non esiste
         }
-    }
+    }*/
 
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -388,18 +419,117 @@ public class NuovaNotaFragment extends DialogFragment {
     }
 
     private void setAudioPreview() {
+
         titoloAudio.setVisibility(View.VISIBLE);
         immagineAudio.setVisibility(View.VISIBLE);
         titoloAudio.setText(getString(R.string.audio));
-        immagineAudio.setImageResource(R.drawable.ic_volume_up_24dp);
+        immagineAudio.setImageResource(R.drawable.ic_play_circle_orange);
+
+        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
+                final Dialog dialog = dialogBuilder.setMessage(getString(R.string.eliminare_nota))
+                        .setPositiveButton(R.string.elimina, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                File file = new File(audioOutputPath);
+                                if (file.exists()) {
+                                    file.delete();
+                                }
+                                audioOutputPath = null;
+                                titoloAudio.setVisibility(View.GONE);
+                                immagineAudio.setVisibility(View.GONE);
+                            }
+                        })
+                        .setNegativeButton(R.string.annulla, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create();
+                dialog.show();
+                return true;
+            }
+        };
+
+        View.OnClickListener onClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AudioPlayerManager.getInstance()
+                        .init(audioOutputPath)
+                        .setAudioPlayingListener(new AudioPlayerManager.AudioPlayingListener() {
+                            @Override
+                            public void onPlayingFinish() {
+                                immagineAudio.setImageResource(R.drawable.ic_play_circle_orange);
+                            }
+                        });
+                if (AudioPlayerManager.getInstance().isPlaying()) {
+                    AudioPlayerManager.getInstance().pausePlaying();
+                    immagineAudio.setImageResource(R.drawable.ic_play_circle_orange);
+                } else if (AudioPlayerManager.getInstance().isStopped()) {
+                    AudioPlayerManager.getInstance().startPlaying();
+                    immagineAudio.setImageResource(R.drawable.ic_pause_circle_orange);
+                } else if (AudioPlayerManager.getInstance().isPaused()) {
+                    AudioPlayerManager.getInstance().resumePlaying();
+                    immagineAudio.setImageResource(R.drawable.ic_pause_circle_orange);
+                }
+            }
+        };
+
+        titoloAudio.setOnClickListener(onClickListener);
+        immagineAudio.setOnClickListener(onClickListener);
+        titoloAudio.setOnLongClickListener(onLongClickListener);
+        immagineAudio.setOnLongClickListener(onLongClickListener);
     }
 
-    public void activityResult(Uri percorso){
+    public void activityResult(final Intent intent) {
         immagine.setVisibility(View.VISIBLE);
-        Picasso.with(getContext()).load(percorso).into(immagine);
-        if (imageOutputPath == null){
-            imageOutputPath = percorso.getPath();
-        }
+        new AsyncTask<Void, Void, Void>() {
+            File file;
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    // salvo una copia dell'immagine in una directory a parte
+                    InputStream is = getContext().getContentResolver().openInputStream(intent.getData());
+                    file = createImageFile();
+                    OutputStream outputStream = new FileOutputStream(file);
+                    byte[] buffer = new byte[is.available()];
+                    is.read(buffer);
+                    outputStream.write(buffer);
+                    outputStream.close();
+                    is.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                imageOutputPath = file.getPath();
+                Log.d("IMAGE_PATH", imageOutputPath);
+                immagine.setVisibility(View.VISIBLE);
+                Picasso.with(getContext())
+                        .load(file)
+                        .fit()
+                        .into(immagine);
+
+                updateBottomMenu();
+            }
+        }.execute();
     }
 
 }

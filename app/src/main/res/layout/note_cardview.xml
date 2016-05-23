@@ -10,18 +10,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="2dp"
-        card_view:cardCornerRadius="2dp"
-        card_view:contentPadding="10dp">
+        card_view:cardCornerRadius="2dp">
 
         <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent">
+
+            <ImageView
+                android:id="@+id/imgBackground"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignBottom="@+id/tag"
+                android:scaleType="fitXY" />
 
             <TextView
                 android:id="@+id/noteTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="10dp"
                 android:text="titolo nota"
                 android:textSize="8pt"
                 android:textStyle="bold" />
@@ -34,6 +43,8 @@
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/noteTitle"
                 android:layout_marginTop="10dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
                 android:text="contenuto nota"
                 android:textSize="6pt" />
 
@@ -45,6 +56,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_below="@+id/noteContent"
                 android:layout_marginTop="5dp"
+                android:paddingRight="10dp"
                 android:text="data/ins/nota"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textSize="4pt"
@@ -58,6 +70,8 @@
                 android:layout_alignParentRight="true"
                 android:layout_below="@+id/expireDate"
                 android:layout_marginTop="5dp"
+                android:paddingBottom="10dp"
+                android:paddingRight="10dp"
                 android:text="TAG"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -69,6 +83,8 @@
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/expireDate"
                 android:layout_marginTop="5dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="10dp"
                 android:visibility="gone" />
 
         </RelativeLayout>
