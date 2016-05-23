@@ -151,7 +151,7 @@ public class NoteMeUtils {
             int newHeight = 800 * bmp.getHeight() / bmp.getWidth();
             bmp = Bitmap.createScaledBitmap(bmp, newWidth, newHeight, false);
         }
-        bmp.compress(Bitmap.CompressFormat.JPEG, 50, outputStream);
+        bmp.compress(Bitmap.CompressFormat.JPEG, compressRatio, outputStream);
 //                    byte[] buffer = new byte[is.available()];
 //                    is.read(buffer);
 //                    outputStream.write(buffer);

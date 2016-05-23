@@ -36,36 +36,45 @@ import com.nhaarman.supertooltips.ToolTip;
 import com.nhaarman.supertooltips.ToolTipRelativeLayout;
 import com.nhaarman.supertooltips.ToolTipView;
 import com.squareup.picasso.Picasso;
+import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
+import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
+import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import it.tsamstudio.noteme.utils.AudioPlayerManager;
+import it.tsamstudio.noteme.utils.Callback;
 import it.tsamstudio.noteme.utils.NoteMeUtils;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NuovaNotaFragment extends DialogFragment implements View.OnClickListener, ToolTipView.OnToolTipViewClickedListener{
+public class NuovaNotaFragment extends DialogFragment implements View.OnClickListener, ToolTipView.OnToolTipViewClickedListener {
 
     private static final String TAG = "NuovaNotaFragment";
+    private static final String TAG_DATE_PICKER = "datepickerdialog";
+    private static final String TAG_TIME_PICKER = "timepickerdialog";
     public static final int CAMERA_REQUEST = 1888;
 
     private View dialogView;
     private TextView titolo, etxtNota, titoloAudio, tag;
     private MediaRecorder mRecorder;
+
     private String audioOutputPath = null;
     private String imageOutputPath = null;
+    private Date expirationDate = null;
     private ImageView immagine, immagineAudio;
     private RelativeLayout relativeLayout;
     AHBottomNavigation bottomNavigation;
-    private AHBottomNavigationItem item1, item2, item3;
+    private AHBottomNavigationItem item1, item2, item3, itemExpirationDate;
 
     private Snackbar timeProgressSnackbar;
     private Timer recordingTimer;
@@ -93,7 +102,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 
     @Override
     public void onToolTipViewClicked(ToolTipView toolTipView) {
-        Log.d("CLICK ON POPUP","DEBUG BEAUTIFUL TIP TOOL");
+        Log.d("CLICK ON POPUP", "DEBUG BEAUTIFUL TIP TOOL");
     }
 
     public interface INuovaNota {
@@ -175,11 +184,10 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         recordingTimer = new Timer();
         timerTime = new Date(0);
 
-
         ToolTipRelativeLayout toolTipRelativeLayout = (ToolTipRelativeLayout) dialogView.findViewById(R.id.tooltipRelativeLayout);
 
         ToolTip toolTip = new ToolTip()
-                //.withContentView(dialogView.findViewById()) per contenuto customizzato
+//                .withContentView(dialogView.findViewById()) // per contenuto customizzato
                 .withText("Insert tag here")
                 .withColor(Color.RED)
                 .withShadow();
@@ -237,10 +245,32 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             }
         });
 
+        itemExpirationDate = new AHBottomNavigationItem("", R.drawable.ic_date_cal);
+        itemExpirationDate.setListener(new AHClickListener() {
+            @Override
+            public void onClickListener(View view) {
+                expirationDate = null;
+                Log.d(TAG, "onClickListener: ");
+                showExpirationDateDialogs(new Callback() {
+                    @Override
+                    public void call(Object... args) {
+                        if (args.length == 1) {
+                            expirationDate = new Date(((long) args[0]));
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public boolean onLongClickListener(View view) {
+                return false;
+            }
+        });
+
         bottomNavigation.addItem(item1);
         bottomNavigation.addItem(item2);
         bottomNavigation.addItem(item3);
-
+        bottomNavigation.addItem(itemExpirationDate);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogView);
 
@@ -547,5 +577,41 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                 updateBottomMenu();
             }
         }.execute();
+    }
+
+    private void showExpirationDateDialogs(final Callback callback) {
+        final Date selectedDate = new Date();
+        final Calendar cal = Calendar.getInstance();
+        DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(
+                new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
+                        selectedDate.setYear(year);
+                        selectedDate.setMonth(monthOfYear + 1);
+                        selectedDate.setDate(dayOfMonth);
+
+                        TimePickerDialog timePickerDialog = TimePickerDialog.newInstance(
+                                new TimePickerDialog.OnTimeSetListener() {
+                                    @Override
+                                    public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
+                                        selectedDate.setHours(hourOfDay);
+                                        selectedDate.setMinutes(minute);
+                                        selectedDate.setSeconds(second);
+
+                                        callback.call(selectedDate.getTime());
+                                    }
+                                },
+                                cal.get(Calendar.HOUR_OF_DAY),
+                                cal.get(Calendar.MINUTE),
+                                true
+                        );
+                        timePickerDialog.show(getActivity().getFragmentManager(), TAG_TIME_PICKER);
+                    }
+                },
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show(getActivity().getFragmentManager(), TAG_DATE_PICKER);
     }
 }
