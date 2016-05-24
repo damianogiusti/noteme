@@ -23,4 +23,5 @@
     <string name="stop">Stop</string>
     <string name="eliminare_foto">Remove attached picture?</string>
     <string name="scade">Expires: </string>
+    <string name="scegli_un_colore">Scegli un colore</string>
 </resources>

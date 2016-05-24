@@ -35,6 +35,8 @@ import com.nhaarman.supertooltips.ToolTip;
 import com.nhaarman.supertooltips.ToolTipRelativeLayout;
 import com.nhaarman.supertooltips.ToolTipView;
 import com.squareup.picasso.Picasso;
+import com.turkialkhateeb.materialcolorpicker.ColorChooserDialog;
+import com.turkialkhateeb.materialcolorpicker.ColorListener;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
@@ -72,6 +74,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private static final String TAG_TITLE_NOTA_FOR_BUNDLE = "titolonotanelbundle";
     private static final String TAG_BODY_NOTA_FOR_BUNDLE = "bodydellanotanelbundle";
     private static final String TAG_GUID_FOR_BUNDLE = "tagguidforbundle";
+    private static final String TAG_COLOR_FOR_BUNDLE = "tagcolorforbundle";
 
     private View dialogView;
     private TextView titolo, etxtNota, titoloAudio, tag;
@@ -82,6 +85,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private String audioOutputPath = null;
     private String imageOutputPath = null;
     private Date expirationDate = null;
+    private int noteColor = 0;
+
     private ImageView immagine, immagineAudio;
     private RelativeLayout relativeLayout;
 
@@ -90,6 +95,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private ImageView menuImgMic;
     private ImageView menuImgCamera;
     private ImageView itemExpirationDate;
+    private ImageView menuImgColor;
+    private ImageView menuImgTag;
 
     private Snackbar timeProgressSnackbar;
     private Timer recordingTimer;
@@ -273,6 +280,37 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             }
         });
 
+        menuImgColor = (ImageView) dialogView.findViewById(R.id.menuImgColor);
+        menuImgColor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final ColorChooserDialog dialog = new ColorChooserDialog(getActivity());
+                dialog.setTitle(R.string.scegli_un_colore);
+                dialog.setColorListener(new ColorListener() {
+                    @Override
+                    public void OnColorClick(View v, final int color) {
+                        noteColor = color;
+                        dialogView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                dialogView.setBackgroundColor(noteColor);
+//                                dialogView.getBackground().setAlpha(((int) Math.floor(255 * 0.5)));
+                            }
+                        });
+                    }
+                });
+                dialog.show();
+            }
+        });
+
+        menuImgTag = (ImageView) dialogView.findViewById(R.id.menuImgTag);
+        menuImgTag.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO visualizzare tooltip
+            }
+        });
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogView);
 
@@ -302,6 +340,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             isRecording = savedInstanceState.getBoolean(TAG_IS_RECORDING_FOR_BUNDLE);
             titolo.setText(savedInstanceState.getString(TAG_TITLE_NOTA_FOR_BUNDLE));
             etxtNota.setText(savedInstanceState.getString(TAG_BODY_NOTA_FOR_BUNDLE));
+            noteColor = savedInstanceState.getInt(TAG_COLOR_FOR_BUNDLE);
         }
     }
 
@@ -323,6 +362,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         outState.putBoolean(TAG_KEYBOARD_FOR_BUNDLE, isKeyboardShown);
         outState.putString(TAG_AUDIO_PATH_FOR_BUNDLE, audioOutputPath);
         outState.putString(TAG_IMAGE_PATH_FOR_BUNDLE, imageOutputPath);
+        outState.putInt(TAG_COLOR_FOR_BUNDLE, noteColor);
         outState.putLong(TAG_EXPIRATION_DATE_FOR_BUNDLE,
                 (expirationDate != null) ? expirationDate.getTime() : 0);
         outState.putBoolean(TAG_IS_RECORDING_FOR_BUNDLE, isRecording);
@@ -373,6 +413,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
             nota.setText("" + testoTemp);
+            nota.setColor(noteColor);
 //            nota.setTag("" + testoTag);
             nota.setCreationDate(new Date());
             nota.setLastModifiedDate(new Date());

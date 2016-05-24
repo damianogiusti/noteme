@@ -1,5 +1,6 @@
 package it.tsamstudio.noteme;
 
+import android.graphics.PorterDuff;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -89,6 +90,23 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         holder.creationDate.setText(date);
         holder.imgBackground.setImageDrawable(null);
         holder.imgBackground.setAlpha(0.25f);
+
+        if (mDataset.get(position).getColor() != 0) {
+            holder.card.post(new Runnable() {
+                @Override
+                public void run() {
+                    holder.card.getBackground().setColorFilter(
+                            mDataset.get(position).getColor(), PorterDuff.Mode.MULTIPLY);
+                }
+            });
+        } else {
+            holder.card.post(new Runnable() {
+                @Override
+                public void run() {
+                    holder.card.getBackground().setColorFilter(null);
+                }
+            });
+        }
 
         if (mDataset.get(position).getExpireDate() != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM", NoteMeApp.getInstance().getLocale());

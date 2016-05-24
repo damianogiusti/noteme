@@ -4,6 +4,7 @@ package it.tsamstudio.noteme;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -143,6 +144,17 @@ public class MostraNotaFragment extends DialogFragment {
                 }
             }
         });
+
+        if (nota.getColor() != 0) {
+            dialogNoteView.post(new Runnable() {
+                @Override
+                public void run() {
+                    dialogNoteView.setBackgroundColor(nota.getColor());
+                }
+            });
+        } else {
+            dialogNoteView.setBackgroundColor(Color.TRANSPARENT);
+        }
 
         // se ho una data di scadenza, mostro anche quella giustamente
         txtExpirationDate = (TextView) dialogNoteView.findViewById(R.id.txtExpirationDate);

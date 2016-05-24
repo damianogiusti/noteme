@@ -337,4 +337,8 @@ public class NoteMeUtils {
             }
         });
     }
+
+    public static String intColorToHex(int color) {
+        return String.format("#%06X", (0xFFFFFF & color));
+    }
 }

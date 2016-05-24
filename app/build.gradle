@@ -45,4 +45,5 @@ dependencies {
     compile 'com.nhaarman.supertooltips:library:3.0.0'
     compile 'com.wdullaer:materialdatetimepicker:2.3.0'
     compile 'com.github.michaldrabik:tapbarmenu:1.0.5'
+    compile project(':Material-Color-Picker-master')
 }

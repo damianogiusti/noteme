@@ -22,7 +22,7 @@ public class Nota implements Parcelable {
     //attributi
     private String id;
     private String title;           //titolo
-    private String color;           //colore
+    private int color;           //colore
     private String tag;             //tag
     private String text;            //testo
     private String image;           //path eventuale immagine salvate
@@ -63,18 +63,12 @@ public class Nota implements Parcelable {
         this.title = title;
     }
 
-    public String getColor() {
+    public int getColor() {
         return color;
     }
 
-    public void setColor(String color) {
-        if (color != null) {
-            if (!color.matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")) {
-                throw new MalformedHexColorException();
-            } else {
-                this.color = color;
-            }
-        }
+    public void setColor(int color) {
+        this.color = color;
     }
 
     public String getText() {
@@ -136,7 +130,7 @@ public class Nota implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(id);
         dest.writeString(title);
-        dest.writeString(color);
+        dest.writeInt(color);
         dest.writeString(tag);
         dest.writeString(text);
         dest.writeString(image);
@@ -166,7 +160,7 @@ public class Nota implements Parcelable {
     private Nota(Parcel in) {
         id = in.readString();
         title = in.readString();
-        color = in.readString();
+        color = in.readInt();
         tag = in.readString();
         text = in.readString();
         image = in.readString();

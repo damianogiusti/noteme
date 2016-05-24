@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="400dp"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context="it.tsamstudio.noteme.NuovaNotaFragment">
 
     <ScrollView
@@ -140,40 +141,58 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingBottom="10dp"
-            android:paddingTop="10dp"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
             android:src="@drawable/ic_attach_file_white_48dp" />
-
-        <ImageView
-            android:id="@+id/menuImgMic"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:paddingBottom="10dp"
-            android:paddingTop="10dp"
-            android:src="@drawable/ic_mic_white_48dp" />
-
-        <Space
-            android:layout_width="56dp"
-            android:layout_height="match_parent" />
 
         <ImageView
             android:id="@+id/menuImgCamera"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingBottom="10dp"
-            android:paddingTop="10dp"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
             android:src="@drawable/ic_add_a_photo_white_48dp" />
+
+        <ImageView
+            android:id="@+id/menuImgMic"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
+            android:src="@drawable/ic_mic_white_48dp" />
+
+        <Space
+            android:layout_width="46dp"
+            android:layout_height="match_parent" />
 
         <ImageView
             android:id="@+id/menuImgExpireDate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingBottom="10dp"
-            android:paddingTop="10dp"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
             android:src="@drawable/ic_date_cal" />
+
+        <ImageView
+            android:id="@+id/menuImgColor"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
+            android:src="@drawable/ic_colors" />
+
+        <ImageView
+            android:id="@+id/menuImgTag"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
+            android:src="@drawable/ic_tag" />
 
     </com.michaldrabik.tapbarmenulib.TapBarMenu>
 
