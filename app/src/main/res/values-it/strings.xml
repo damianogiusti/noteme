@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Note Me</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Impostazioni</string>
     <string name="titolo_nuova_nota">titolo</string>
@@ -16,4 +20,5 @@
     <string name="aggiungi_tag">aggiungi tag</string>
     <string name="stop">Stop</string>
     <string name="eliminare_foto">Vuoi rimuovere l\'immagine allegata?</string>
+    <string name="scade">Scade il:</string>
 </resources>
