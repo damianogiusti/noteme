@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.UiThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -26,8 +27,6 @@ import com.github.brnunes.swipeablerecyclerview.SwipeableRecyclerViewTouchListen
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 
 public class HomeActivity extends AppCompatActivity
@@ -40,6 +39,8 @@ public class HomeActivity extends AppCompatActivity
     public static final int CAMERA_CODE = 1000;
     public static final int GALLERY_CODE = 2000;
     private static final String TAG_DIALOG_MOSTRA_NOTA = "dialogmostranota";
+    private static final String TAG_LIST_NOTE_FOR_BUNDLE = "taglistnoteforbundle";
+    private static final String TAG_LIST_STATE_FOR_BUNDLE = "tagliststatefrasdflj";
 
     private RecyclerView recyclerView;
     private NotesRecyclerViewAdapter mAdapter;
@@ -65,6 +66,8 @@ public class HomeActivity extends AppCompatActivity
         if (savedInstanceState != null) {
             nuovaNotaFragment = ((NuovaNotaFragment) getSupportFragmentManager().getFragment(savedInstanceState, TAG_DIALOG_NUOVA_NOTA));
             fragmentMostraNota = ((MostraNotaFragment) getSupportFragmentManager().getFragment(savedInstanceState, TAG_DIALOG_MOSTRA_NOTA));
+            notesList = savedInstanceState.getParcelableArrayList(TAG_LIST_NOTE_FOR_BUNDLE);
+//            mLayoutManager.onRestoreInstanceState(savedInstanceState.getParcelable(TAG_LIST_STATE_FOR_BUNDLE));
         }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -138,17 +141,19 @@ public class HomeActivity extends AppCompatActivity
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             colonne = 3;
         }
+
         mLayoutManager = new StaggeredGridLayoutManager(colonne, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(mLayoutManager);
 
         database = new CouchbaseDB(getApplicationContext());
-        notesList = new ArrayList<>();
-        try {
-            notesList = database.leggiNote();
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (notesList == null) {
+            try {
+                notesList = database.leggiNote();
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         SwipeableRecyclerViewTouchListener swipeListener = new SwipeableRecyclerViewTouchListener(recyclerView,
                 new SwipeableRecyclerViewTouchListener.SwipeListener() {
@@ -216,6 +221,7 @@ public class HomeActivity extends AppCompatActivity
                         // TODO
                     }
                 });
+
         recyclerView.addOnItemTouchListener(swipeListener);
         mAdapter = new NotesRecyclerViewAdapter(notesList);
         recyclerView.setAdapter(mAdapter);
@@ -303,6 +309,10 @@ public class HomeActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(TAG_LIST_NOTE_FOR_BUNDLE, notesList);
+
+//        outState.putParcelable(TAG_LIST_STATE_FOR_BUNDLE, mLayoutManager.onSaveInstanceState());
+
         if (nuovaNotaFragment != null &&
                 getSupportFragmentManager().findFragmentByTag(TAG_DIALOG_NUOVA_NOTA) != null) {
             getSupportFragmentManager().putFragment(outState, TAG_DIALOG_NUOVA_NOTA, nuovaNotaFragment);
@@ -337,16 +347,18 @@ public class HomeActivity extends AppCompatActivity
     }
 
     @Override
+    @UiThread
     public void onNuovaNotaAggiunta(Nota nota) {
+        Log.d(TAG, "onNuovaNotaAggiunta: nota is null? " + (nota == null));
         if (nota != null) {
-            notesList.add(nota);
-            Collections.sort(notesList, new Comparator<Nota>() {
-                @Override
-                public int compare(Nota lhs, Nota rhs) {
-                    return lhs.getLastModifiedDate().compareTo(rhs.getLastModifiedDate());
-                }
-            });
-            mAdapter.notifyDataSetChanged();
+            notesList.add(0, nota);
+            mAdapter.notifyItemInserted(0);
+//            Collections.sort(notesList, new Comparator<Nota>() {
+//                @Override
+//                public int compare(Nota lhs, Nota rhs) {
+//                    return -1 * lhs.getLastModifiedDate().compareTo(rhs.getLastModifiedDate());
+//                }
+//            });
         }
     }
 
