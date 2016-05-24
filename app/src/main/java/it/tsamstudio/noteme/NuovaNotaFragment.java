@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -77,7 +78,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private static final String TAG_COLOR_FOR_BUNDLE = "tagcolorforbundle";
 
     private View dialogView;
-    private TextView titolo, etxtNota, titoloAudio, tag;
+    private EditText tag;
+    private TextView titolo, etxtNota, titoloAudio;
     private TextView txtDataScadenza;
     private MediaRecorder mRecorder;
 
@@ -106,6 +108,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private boolean isKeyboardShown;
 
     public ToolTipView myToolTipView;
+    public ToolTip toolTip;
+    public View v;
 
     INuovaNota listener = new INuovaNota() {
         @Override
@@ -211,13 +215,14 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 
         ToolTipRelativeLayout toolTipRelativeLayout = (ToolTipRelativeLayout) dialogView.findViewById(R.id.tooltipRelativeLayout);
 
-        ToolTip toolTip = new ToolTip()
+        toolTip = new ToolTip()
                 .withContentView(LayoutInflater.from(getActivity()).inflate(R.layout.edittext_layout_tooltip, null)) // per contenuto customizzato
-//                .withText("Insert tag here")
                 .withColor(getResources().getColor(R.color.colorAccent))
                 .withShadow();
-//        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.menuImgExpireDate));
-//        myToolTipView.setOnToolTipViewClickedListener(this);
+        View vTool = toolTip.getContentView();
+        tag = (EditText) vTool.findViewById(R.id.tagInToolTip);
+        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.menuImgExpireDate));
+        myToolTipView.setOnToolTipViewClickedListener(this);
 
         tapBarMenu = (TapBarMenu) dialogView.findViewById(R.id.tapBarMenu);
 
@@ -396,7 +401,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private Nota saveNote() {
         String titoloTemp = titolo.getText().toString().trim();
         String testoTemp = etxtNota.getText().toString().trim();
-        Log.d(TAG, String.format("saveNote: %s, %s", titoloTemp, testoTemp));
+        String tagTemp = tag.getText().toString().trim();
+        Log.d(TAG, String.format("saveNote: %s, %s, %s", titoloTemp, testoTemp, tagTemp));
 
         if (titoloTemp.length() > 0 || testoTemp.length() > 0 ||
                 (audioOutputPath != null && audioOutputPath.trim().length() > 0) ||
@@ -409,12 +415,15 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             } else {
                 nota = db.leggiNota(guid);
             }
+            if(nota == null){
+                nota = new Nota();
+            }
             guid = nota.getID();
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
             nota.setText("" + testoTemp);
             nota.setColor(noteColor);
-//            nota.setTag("" + testoTag);
+            nota.setTag("" + tagTemp);
             nota.setCreationDate(new Date());
             nota.setLastModifiedDate(new Date());
             nota.setExpireDate(expirationDate);
