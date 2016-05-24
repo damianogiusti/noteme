@@ -177,17 +177,19 @@ public class HomeActivity extends AppCompatActivity
                         for (int i : reverseSortedPositions) {
                             noteEliminate.set(i, notesList.get(i));
                             notesList.remove(i);
-                            mAdapter.notifyDataSetChanged();
+                            mAdapter.notifyItemRemoved(i);
                         }
                         Snackbar snackNotaEliminata = Snackbar.make(recyclerView, getString(R.string.nota_eliminata), Snackbar.LENGTH_LONG);
                         snackNotaEliminata.setAction(getString(R.string.annulla), new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 for (int i = 0; i < noteEliminate.size(); i++) {
-                                    if (noteEliminate.get(i) != null)
+                                    if (noteEliminate.get(i) != null) {
                                         notesList.add(i, noteEliminate.get(i));
+                                        mAdapter.notifyItemInserted(i);
+                                    }
                                 }
-                                mAdapter.notifyDataSetChanged();
+//                                mAdapter.notifyDataSetChanged();
                                 noteEliminate.clear();
                             }
                         });
