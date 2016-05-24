@@ -371,10 +371,10 @@ public class HomeActivity extends AppCompatActivity
 
         // se ricevo un intent da galleria o da fotocamera
         // chiamo il metodo del fragment che salva la foto compressa
-        if ((requestCode == GALLERY_CODE || requestCode == CAMERA_CODE)
-                && resultCode == RESULT_OK) {
-            nuovaNotaFragment.activityResult(data);
-            return;
+        if (resultCode == RESULT_OK) {
+            if (requestCode == GALLERY_CODE || requestCode == NuovaNotaFragment.CAMERA_REQUEST) {
+                nuovaNotaFragment.activityResult(data, requestCode);
+            }
         }
 
     }
