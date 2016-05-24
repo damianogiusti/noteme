@@ -7,6 +7,7 @@
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:id="@+id/tagInToolTip"
         android:background="@android:color/transparent"
         android:hint="@string/aggiungi_tag" />
 </LinearLayout>

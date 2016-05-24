@@ -26,9 +26,11 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import it.tsamstudio.noteme.utils.AudioPlayerManager;
+import it.tsamstudio.noteme.utils.NoteMeApp;
 import it.tsamstudio.noteme.utils.NoteMeUtils;
 
 
@@ -53,6 +55,8 @@ public class MostraNotaFragment extends DialogFragment {
     // anteprima immagine
     private ImageView imgThumbnail;
     private boolean isZoomedImageShowing;
+    // scadenza nota
+    private TextView txtExpirationDate;
 
     private final static String NOTA_KEY_FOR_BUNDLE = "notaParceable";
     private final static String POSITION_KEY_FOR_BUNDLE = "posizioneNota";
@@ -139,6 +143,17 @@ public class MostraNotaFragment extends DialogFragment {
                 }
             }
         });
+
+        // se ho una data di scadenza, mostro anche quella giustamente
+        txtExpirationDate = (TextView) dialogNoteView.findViewById(R.id.txtExpirationDate);
+        if (nota.getExpireDate() != null) {
+            txtExpirationDate.setVisibility(View.VISIBLE);
+            Log.d(TAG, "onCreateDialog: " + nota.getExpireDate());
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", NoteMeApp.getInstance().getLocale());
+            txtExpirationDate.setText(getString(R.string.scade) + " " + sdf.format(nota.getExpireDate()));
+        } else {
+            txtExpirationDate.setVisibility(View.GONE);
+        }
 
         // se ho una nota audio do la possibilita di riprodurla, altrimenti non mostro il player
         RelativeLayout audioPlayerLayout = (RelativeLayout) dialogNoteView.findViewById(R.id.audioPlayerLayout);

@@ -2,6 +2,8 @@ package it.tsamstudio.noteme.utils;
 
 import android.app.Application;
 
+import java.util.Locale;
+
 /**
  * Created by damiano on 23/05/16.
  */
@@ -24,5 +26,9 @@ public class NoteMeApp extends Application {
     public void onCreate() {
         super.onCreate();
         instance = this;
+    }
+
+    public Locale getLocale() {
+        return getResources().getConfiguration().locale;
     }
 }

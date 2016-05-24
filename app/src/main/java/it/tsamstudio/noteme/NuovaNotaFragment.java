@@ -18,12 +18,14 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -74,7 +76,9 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private static final String TAG_GUID_FOR_BUNDLE = "tagguidforbundle";
 
     private View dialogView;
-    private TextView titolo, etxtNota, titoloAudio, tag;
+    private EditText tag;
+    private TextView titolo, etxtNota, titoloAudio;
+    private TextView txtDataScadenza;
     private MediaRecorder mRecorder;
 
     private String guid;
@@ -98,6 +102,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private boolean isKeyboardShown;
 
     public ToolTipView myToolTipView;
+    public ToolTip toolTip;
+    public View v;
 
     INuovaNota listener = new INuovaNota() {
         @Override
@@ -186,6 +192,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         titolo = (TextView) dialogView.findViewById(R.id.etxtTitolo);
         etxtNota = (TextView) dialogView.findViewById(R.id.etxtNota);
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
+        txtDataScadenza = (TextView) dialogView.findViewById(R.id.txtDataScadenza);
 
         // TODO qui non prende l'imageView giusta, bisogna fare il layout per la visualizzazione
         immagine = (ImageView) dialogView.findViewById(R.id.immagine);
@@ -202,13 +209,14 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 
         ToolTipRelativeLayout toolTipRelativeLayout = (ToolTipRelativeLayout) dialogView.findViewById(R.id.tooltipRelativeLayout);
 
-        ToolTip toolTip = new ToolTip()
+        toolTip = new ToolTip()
                 .withContentView(LayoutInflater.from(getActivity()).inflate(R.layout.edittext_layout_tooltip, null)) // per contenuto customizzato
-//                .withText("Insert tag here")
                 .withColor(getResources().getColor(R.color.colorAccent))
                 .withShadow();
-//        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.menuImgExpireDate));
-//        myToolTipView.setOnToolTipViewClickedListener(this);
+        View vTool = toolTip.getContentView();
+        tag = (EditText) vTool.findViewById(R.id.tagInToolTip);
+        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.menuImgExpireDate));
+        myToolTipView.setOnToolTipViewClickedListener(this);
 
         tapBarMenu = (TapBarMenu) dialogView.findViewById(R.id.tapBarMenu);
 
@@ -262,6 +270,9 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                     public void call(Object... args) {
                         if (args.length == 1) {
                             expirationDate = new Date(((long) args[0]));
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", NoteMeApp.getInstance().getLocale());
+                            txtDataScadenza.setText(getString(R.string.scade) + " " + sdf.format(expirationDate));
+                            txtDataScadenza.setVisibility(View.VISIBLE);
                         }
                     }
                 });
@@ -351,7 +362,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private Nota saveNote() {
         String titoloTemp = titolo.getText().toString().trim();
         String testoTemp = etxtNota.getText().toString().trim();
-        Log.d(TAG, String.format("saveNote: %s, %s", titoloTemp, testoTemp));
+        String tagTemp = tag.getText().toString().trim();
+        Log.d(TAG, String.format("saveNote: %s, %s, %s", titoloTemp, testoTemp, tagTemp));
 
         if (titoloTemp.length() > 0 || testoTemp.length() > 0 ||
                 (audioOutputPath != null && audioOutputPath.trim().length() > 0) ||
@@ -364,14 +376,17 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             } else {
                 nota = db.leggiNota(guid);
             }
+            if(nota == null){
+                nota = new Nota();
+            }
             guid = nota.getID();
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
             nota.setTitle("" + titoloNota);
             nota.setText("" + testoTemp);
-//            nota.setTag("" + testoTag);
+            nota.setTag("" + tagTemp);
             nota.setCreationDate(new Date());
             nota.setLastModifiedDate(new Date());
-            // TODO set data scadenza
+            nota.setExpireDate(expirationDate);
             nota.setAudio(audioOutputPath);
             nota.setImage(imageOutputPath);
 
@@ -670,14 +685,14 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void showExpirationDateDialogs(final Callback callback) {
-        final Date selectedDate = new Date();
+        final Date selectedDate = new Date(0);
         final Calendar cal = Calendar.getInstance();
         DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-                        selectedDate.setYear(year);
-                        selectedDate.setMonth(monthOfYear + 1);
+                        selectedDate.setYear(year - 1900);
+                        selectedDate.setMonth(monthOfYear);
                         selectedDate.setDate(dayOfMonth);
 
                         TimePickerDialog timePickerDialog = TimePickerDialog.newInstance(
@@ -687,7 +702,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                                         selectedDate.setHours(hourOfDay);
                                         selectedDate.setMinutes(minute);
                                         selectedDate.setSeconds(second);
-
                                         callback.call(selectedDate.getTime());
                                     }
                                 },
