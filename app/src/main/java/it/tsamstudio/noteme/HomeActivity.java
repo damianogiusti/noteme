@@ -117,11 +117,11 @@ public class HomeActivity extends AppCompatActivity
         closeSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchList = null;
                 searchView.setQuery("", false);
                 searchView.setIconified(true);
-                recyclerView.swapAdapter(mAdapter, false);
                 searchList.clear();
+                recyclerView.swapAdapter(mAdapter, false);
+                searchList = null;
             }
         });
 
@@ -394,7 +394,7 @@ public class HomeActivity extends AppCompatActivity
     }
 
     public void onNotaModificata(Nota nota, int position) {
-        if (nota != null) {
+        if (nota != null && searchList == null) {
             try {
                 if (position > -1) {
                     notesList.set(position, nota);
