@@ -78,7 +78,7 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         holder.title.setText(mDataset.get(position).getTitle());
         holder.content.setText(mDataset.get(position).getText());
         Date d = mDataset.get(position).getLastModifiedDate();
-        SimpleDateFormat sd = new SimpleDateFormat("dd MMMM yyyy HH:mm");
+        SimpleDateFormat sd = new SimpleDateFormat("dd/MM/yyyy HH:mm", NoteMeApp.getInstance().getLocale());
 
         String date = sd.format(d);
         holder.expirationDate.setText(date);

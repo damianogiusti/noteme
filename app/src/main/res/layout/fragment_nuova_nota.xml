@@ -92,7 +92,7 @@
 
                     <TextView
                         android:id="@+id/textAudio"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="30dp"
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
@@ -100,6 +100,18 @@
                         android:layout_toEndOf="@+id/imageAudio"
                         android:layout_toRightOf="@+id/imageAudio"
                         android:gravity="center_vertical" />
+
+                    <TextView
+                        android:id="@+id/txtDataScadenza"
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_below="@+id/etxtNota"
+                        android:layout_toEndOf="@+id/imageAudio"
+                        android:layout_toRightOf="@+id/imageAudio"
+                        android:gravity="center_vertical|end"
+                        android:paddingLeft="5dp" />
 
                 </LinearLayout>
             </RelativeLayout>
@@ -164,17 +176,6 @@
             android:src="@drawable/ic_date_cal" />
 
     </com.michaldrabik.tapbarmenulib.TapBarMenu>
-
-    <!--<com.aurelhubert.ahbottomnavigation.AHBottomNavigation-->
-    <!--android:id="@+id/bottomNavigation"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_alignParentLeft="true"-->
-    <!--android:layout_alignParentStart="true"-->
-    <!--android:layout_below="@+id/relativo"-->
-    <!--android:layout_gravity="bottom">-->
-
-    <!--</com.aurelhubert.ahbottomnavigation.AHBottomNavigation>-->
 
 </android.support.design.widget.CoordinatorLayout>
 

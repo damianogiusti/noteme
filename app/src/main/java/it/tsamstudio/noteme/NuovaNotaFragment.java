@@ -75,6 +75,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 
     private View dialogView;
     private TextView titolo, etxtNota, titoloAudio, tag;
+    private TextView txtDataScadenza;
     private MediaRecorder mRecorder;
 
     private String guid;
@@ -186,6 +187,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         titolo = (TextView) dialogView.findViewById(R.id.etxtTitolo);
         etxtNota = (TextView) dialogView.findViewById(R.id.etxtNota);
         relativeLayout = (RelativeLayout) dialogView.findViewById(R.id.relativo);
+        txtDataScadenza = (TextView) dialogView.findViewById(R.id.txtDataScadenza);
 
         // TODO qui non prende l'imageView giusta, bisogna fare il layout per la visualizzazione
         immagine = (ImageView) dialogView.findViewById(R.id.immagine);
@@ -262,6 +264,9 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                     public void call(Object... args) {
                         if (args.length == 1) {
                             expirationDate = new Date(((long) args[0]));
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", NoteMeApp.getInstance().getLocale());
+                            txtDataScadenza.setText(getString(R.string.scade) + sdf.format(expirationDate));
+                            txtDataScadenza.setVisibility(View.VISIBLE);
                         }
                     }
                 });
@@ -371,7 +376,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 //            nota.setTag("" + testoTag);
             nota.setCreationDate(new Date());
             nota.setLastModifiedDate(new Date());
-            // TODO set data scadenza
+            nota.setExpireDate(expirationDate);
             nota.setAudio(audioOutputPath);
             nota.setImage(imageOutputPath);
 
@@ -670,14 +675,14 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void showExpirationDateDialogs(final Callback callback) {
-        final Date selectedDate = new Date();
+        final Date selectedDate = new Date(0);
         final Calendar cal = Calendar.getInstance();
         DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-                        selectedDate.setYear(year);
-                        selectedDate.setMonth(monthOfYear + 1);
+                        selectedDate.setYear(year - 1900);
+                        selectedDate.setMonth(monthOfYear);
                         selectedDate.setDate(dayOfMonth);
 
                         TimePickerDialog timePickerDialog = TimePickerDialog.newInstance(
@@ -687,7 +692,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                                         selectedDate.setHours(hourOfDay);
                                         selectedDate.setMinutes(minute);
                                         selectedDate.setSeconds(second);
-
                                         callback.call(selectedDate.getTime());
                                     }
                                 },
