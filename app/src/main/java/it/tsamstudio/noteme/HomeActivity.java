@@ -292,9 +292,7 @@ public class HomeActivity extends AppCompatActivity
                 if (searchList != null)
                     n = searchList.get(position);
 
-                if (fragmentMostraNota == null) {
-                    fragmentMostraNota = MostraNotaFragment.newInstance(n, position);
-                }
+                fragmentMostraNota = MostraNotaFragment.newInstance(n, position);
                 fragmentMostraNota.show(getSupportFragmentManager(), TAG_DIALOG_MOSTRA_NOTA);
             }
         });

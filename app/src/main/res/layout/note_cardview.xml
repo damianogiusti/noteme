@@ -80,8 +80,8 @@
 
             <ImageView
                 android:id="@+id/micImgView"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/creationDate"
