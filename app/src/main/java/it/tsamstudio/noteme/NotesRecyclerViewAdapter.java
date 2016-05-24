@@ -1,6 +1,5 @@
 package it.tsamstudio.noteme;
 
-import android.graphics.drawable.Drawable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -16,6 +15,8 @@ import com.squareup.picasso.Picasso;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import it.tsamstudio.noteme.utils.NoteMeApp;
 
 
 public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecyclerViewAdapter.DataObjectHolder> {
@@ -42,9 +43,9 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
             title = (TextView) itemView.findViewById(R.id.noteTitle);
             content = (TextView) itemView.findViewById(R.id.noteContent);
             tag = (TextView) itemView.findViewById(R.id.tag);
-            expirationDate = (TextView) itemView.findViewById(R.id.expireDate);
+            expirationDate = (TextView) itemView.findViewById(R.id.creationDate);
             micImg = (ImageView) itemView.findViewById(R.id.micImgView);
-            imgBackground = (ImageView)itemView.findViewById(R.id.imgBackground);
+            imgBackground = (ImageView) itemView.findViewById(R.id.imgBackground);
             itemView.setOnClickListener(this);
         }
 
@@ -76,14 +77,21 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
     public void onBindViewHolder(final DataObjectHolder holder, final int position) {
         holder.title.setText(mDataset.get(position).getTitle());
         holder.content.setText(mDataset.get(position).getText());
-        holder.tag.setText(mDataset.get(position).getTag());
         Date d = mDataset.get(position).getLastModifiedDate();
         SimpleDateFormat sd = new SimpleDateFormat("dd MMMM yyyy HH:mm");
 
         String date = sd.format(d);
         holder.expirationDate.setText(date);
         holder.imgBackground.setImageDrawable(null);
-        holder.imgBackground.setAlpha(0.2f);
+        holder.imgBackground.setAlpha(0.25f);
+
+        if (mDataset.get(position).getTag() != null &&
+                mDataset.get(position).getTag().trim().length() > 0) {
+            holder.tag.setVisibility(View.VISIBLE);
+            holder.tag.setText(mDataset.get(position).getTag());
+        } else {
+            holder.tag.setVisibility(View.GONE);
+        }
 
         if (mDataset.get(position).getAudio() != null) {
             holder.micImg.setVisibility(View.VISIBLE);
@@ -99,19 +107,28 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
             holder.imgBackground.post(new Runnable() {
                 @Override
                 public void run() {
-                    Picasso.with(NoteMeApp.getInstance().getApplicationContext())
-                            .load("file://" + mDataset.get(position).getImage())
-                            .into(holder.imgBackground, new Callback() {
-                                @Override
-                                public void onSuccess() {
-                                    Log.d(TAG, "onSuccess: picasso loaded");
-                                }
+                    holder.card.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.d(TAG, "run: " + holder.card.getWidth() + " " + holder.card.getHeight());
+                            Picasso.with(NoteMeApp.getInstance().getApplicationContext())
+                                    .load("file://" + mDataset.get(position).getImage())
+                                    .resize(holder.card.getWidth(), holder.card.getHeight())
+                                    .centerCrop()
+                                    .into(holder.imgBackground, new Callback() {
+                                        @Override
+                                        public void onSuccess() {
+                                            Log.d(TAG, "onSuccess: picasso loaded");
+                                        }
 
-                                @Override
-                                public void onError() {
-                                    Log.e(TAG, "onError: picasso failed");
-                                }
-                            });
+                                        @Override
+                                        public void onError() {
+                                            Log.e(TAG, "onError: picasso failed");
+                                        }
+                                    });
+                        }
+                    });
+
 //                    holder.imgBackground.setImageDrawable(drawable);
                 }
             });
