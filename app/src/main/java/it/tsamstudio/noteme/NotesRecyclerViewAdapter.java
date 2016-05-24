@@ -32,6 +32,7 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         TextView title;
         TextView content;
         TextView tag;
+        TextView creationDate;
         TextView expirationDate;
         ImageView micImg;
         ImageView imgBackground;
@@ -43,7 +44,8 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
             title = (TextView) itemView.findViewById(R.id.noteTitle);
             content = (TextView) itemView.findViewById(R.id.noteContent);
             tag = (TextView) itemView.findViewById(R.id.tag);
-            expirationDate = (TextView) itemView.findViewById(R.id.creationDate);
+            creationDate = (TextView) itemView.findViewById(R.id.creationDate);
+            expirationDate = (TextView) itemView.findViewById(R.id.txtExpirationDate);
             micImg = (ImageView) itemView.findViewById(R.id.micImgView);
             imgBackground = (ImageView) itemView.findViewById(R.id.imgBackground);
             itemView.setOnClickListener(this);
@@ -75,15 +77,27 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
 
     @Override
     public void onBindViewHolder(final DataObjectHolder holder, final int position) {
-        holder.title.setText(mDataset.get(position).getTitle());
-        holder.content.setText(mDataset.get(position).getText());
+        holder.title.setText(mDataset.get(position).getTitle().trim());
+        String content = mDataset.get(position).getText().trim();
+        if (content.trim().length() > 50)
+            content = content.substring(0, 50) + "...";
+        holder.content.setText(content);
         Date d = mDataset.get(position).getLastModifiedDate();
         SimpleDateFormat sd = new SimpleDateFormat("dd/MM/yyyy HH:mm", NoteMeApp.getInstance().getLocale());
 
         String date = sd.format(d);
-        holder.expirationDate.setText(date);
+        holder.creationDate.setText(date);
         holder.imgBackground.setImageDrawable(null);
         holder.imgBackground.setAlpha(0.25f);
+
+        if (mDataset.get(position).getExpireDate() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM", NoteMeApp.getInstance().getLocale());
+            holder.expirationDate.setVisibility(View.VISIBLE);
+            holder.expirationDate.setText(NoteMeApp.getInstance().getString(R.string.scade)
+                    + " " + sdf.format(mDataset.get(position).getExpireDate()));
+        } else {
+            holder.expirationDate.setVisibility(View.GONE);
+        }
 
         if (mDataset.get(position).getTag() != null &&
                 mDataset.get(position).getTag().trim().length() > 0) {

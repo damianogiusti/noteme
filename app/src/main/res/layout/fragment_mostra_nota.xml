@@ -28,20 +28,28 @@
             android:text="titolo"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/txtContent"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_alignEnd="@+id/txtTitle"
             android:layout_alignLeft="@+id/txtTitle"
             android:layout_alignRight="@+id/txtTitle"
             android:layout_alignStart="@+id/txtTitle"
             android:layout_below="@+id/txtTitle"
             android:layout_marginTop="5dp"
-            android:gravity="start"
-            android:background="@android:color/transparent"
-            android:capitalize="sentences"
-            android:text="contenuto" />
+            android:layout_marginBottom="5dp"
+            android:layout_above="@+id/linearLayout">
+            <EditText
+                android:id="@+id/txtContent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="70dp"
+                android:gravity="start"
+                android:background="@android:color/transparent"
+                android:capitalize="sentences"
+                android:text="contenuto" />
+
+        </ScrollView>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -49,7 +57,8 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:id="@+id/linearLayout">
 
             <LinearLayout
                 android:layout_width="match_parent"

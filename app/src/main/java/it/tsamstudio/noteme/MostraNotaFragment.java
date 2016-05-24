@@ -148,7 +148,8 @@ public class MostraNotaFragment extends DialogFragment {
         txtExpirationDate = (TextView) dialogNoteView.findViewById(R.id.txtExpirationDate);
         if (nota.getExpireDate() != null) {
             txtExpirationDate.setVisibility(View.VISIBLE);
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy mm:ss", NoteMeApp.getInstance().getLocale());
+            Log.d(TAG, "onCreateDialog: " + nota.getExpireDate());
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", NoteMeApp.getInstance().getLocale());
             txtExpirationDate.setText(getString(R.string.scade) + " " + sdf.format(nota.getExpireDate()));
         } else {
             txtExpirationDate.setVisibility(View.GONE);

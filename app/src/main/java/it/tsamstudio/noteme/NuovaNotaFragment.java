@@ -265,7 +265,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                         if (args.length == 1) {
                             expirationDate = new Date(((long) args[0]));
                             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", NoteMeApp.getInstance().getLocale());
-                            txtDataScadenza.setText(getString(R.string.scade) + sdf.format(expirationDate));
+                            txtDataScadenza.setText(getString(R.string.scade) + " " + sdf.format(expirationDate));
                             txtDataScadenza.setVisibility(View.VISIBLE);
                         }
                     }
