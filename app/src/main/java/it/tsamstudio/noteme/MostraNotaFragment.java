@@ -233,6 +233,7 @@ public class MostraNotaFragment extends DialogFragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(NOTA_KEY_FOR_BUNDLE, nota);
+        listener.onNotaModificata(updateNote(), getArguments().getInt(POSITION_KEY_FOR_BUNDLE));
     }
 
     private void setAudioPreview() {

@@ -165,6 +165,9 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     public void onDetach() {
         super.onDetach();
         Log.d(TAG, "onDETACH");
+        listener.onNuovaNotaAggiunta(saveNote());
+        imageOutputPath = null;
+        audioOutputPath = null;
     }
 
     @Nullable
@@ -496,8 +499,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         }
         // Continue only if the File was successfully created
         if (photoFile != null) {
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
-            startActivityForResult(takePictureIntent, CAMERA_REQUEST);
+//            takePictureIntent.putExtra(MediaStore., Uri.fromFile(photoFile));
+            getActivity().startActivityForResult(takePictureIntent, CAMERA_REQUEST);
         }
 
     }
@@ -581,7 +584,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         immagineAudio.setOnLongClickListener(onLongClickListener);
     }
 
-    public void activityResult(final Intent intent) {
+    public void activityResult(final Intent intent, final int requestCode) {
         immagine.setVisibility(View.VISIBLE);
 
         new AsyncTask<Void, Void, Void>() {
@@ -590,6 +593,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
+
             }
 
             @Override
@@ -612,6 +616,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 imageOutputPath = file.getPath();
+                Log.d(TAG, "onPostExecute: " + imageOutputPath);
                 setImagePreview();
                 updateBottomMenu();
             }
