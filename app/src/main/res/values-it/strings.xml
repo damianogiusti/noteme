@@ -22,4 +22,5 @@
     <string name="eliminare_foto">Vuoi rimuovere l\'immagine allegata?</string>
     <string name="scade">Scade il:</string>
     <string name="scegli_un_colore">Scegli un colore</string>
+    <string name="note_scadute_eliminate">Note scadute eliminate.</string>
 </resources>

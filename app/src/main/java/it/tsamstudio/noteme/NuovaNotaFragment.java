@@ -386,9 +386,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void updateBottomMenu() {
-        menuImgAttach.setEnabled(true);
-        menuImgMic.setEnabled(true);
-        menuImgCamera.setEnabled(true);
+
+        // se queste callback ritornano true, onClickListener non viene chiamato
 
         menuImgAttach.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -416,7 +415,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         });
     }
 
-    //metodo chiamato quando viene chiuso il dialog per salvare la etxtNota
+    // metodo chiamato quando viene chiuso il dialog per salvare la nota
     private Nota saveNote() {
         String titoloTemp = titolo.getText().toString().trim();
         String testoTemp = etxtNota.getText().toString().trim();
@@ -465,7 +464,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void startRecording() {
-
         mRecorder = setupRecorderWithPermission();
         if (mRecorder != null) {
             try {
