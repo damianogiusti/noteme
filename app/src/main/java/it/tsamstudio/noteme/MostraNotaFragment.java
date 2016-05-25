@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.text.method.HideReturnsTransformationMethod;
 import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -216,29 +217,41 @@ public class MostraNotaFragment extends DialogFragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        listener.onNotaModificata(updateNote(), getArguments().getInt(POSITION_KEY_FOR_BUNDLE));
+        Nota nota = updateNote();
+        if (nota != null) {
+            listener.onNotaModificata(nota, getArguments().getInt(POSITION_KEY_FOR_BUNDLE));
+        }
     }
 
+    /**
+     * Aggiorna la nota in base ai parametri nella UI. Ritorna null se non ci sono nuove modifiche.
+     */
     private Nota updateNote() {
-        String title = txtTitle.getText().toString().trim();
-        String text = txtContent.getText().toString().trim();
+        String oldTitle = nota.getTitle().trim();
+        String oldText = nota.getText().trim();
+        String newTitle = txtTitle.getText().toString().trim();
+        String newText = txtContent.getText().toString().trim();
 
-        nota.setTitle((title.length() > 0) ? title : getString(R.string.nota_senza_titolo));
-        nota.setLastModifiedDate(new Date());
+        if (!newTitle.equals(oldTitle) || !newText.equals(oldText)) {
 
-        if ((title.length() > 0 && text.length() > 0)
-                || (title.length() > 0 && text.length() == 0)
-                || (title.length() == 0 && text.length() > 0)) {
-            nota.setText(txtContent.getText().toString());
-            try {
-                database.salvaNota(nota);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (CouchbaseLiteException e) {
-                e.printStackTrace();
+            nota.setTitle((newTitle.length() > 0) ? newTitle : getString(R.string.nota_senza_titolo));
+
+            if ((newTitle.length() > 0 && newText.length() > 0)
+                    || (newTitle.length() > 0 && newText.length() == 0)
+                    || (newTitle.length() == 0 && newText.length() > 0)) {
+                nota.setText(txtContent.getText().toString());
+                try {
+                    database.salvaNota(nota);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
             }
+            Log.d(TAG, "updateNote: nota.getcolor(): " + nota.getColor());
+            return nota;
         }
-        return nota;
+        return null;
     }
 
     public boolean onBackPressed() {
@@ -260,7 +273,10 @@ public class MostraNotaFragment extends DialogFragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(NOTA_KEY_FOR_BUNDLE, nota);
-        listener.onNotaModificata(updateNote(), getArguments().getInt(POSITION_KEY_FOR_BUNDLE));
+        Nota nota = updateNote();
+        if (nota != null) {
+            listener.onNotaModificata(nota, getArguments().getInt(POSITION_KEY_FOR_BUNDLE));
+        }
     }
 
     private void setAudioPreview() {
@@ -272,7 +288,7 @@ public class MostraNotaFragment extends DialogFragment {
         AudioPlayerManager.getInstance()
                 // lo inizializzo col percorso del file
                 .init(nota.getAudio())
-                        // imposto il listener per aggiornare il cursore quando riproduce l'audio
+                // imposto il listener per aggiornare il cursore quando riproduce l'audio
                 .setSeekChangeListener(new AudioPlayerManager.SeekChangeListener() {
                     @Override
                     public void onSeekChanged(int position) {
@@ -280,7 +296,7 @@ public class MostraNotaFragment extends DialogFragment {
                         txtTimer.setText(AudioPlayerManager.formatTiming(position));
                     }
                 })
-                        // imposto il listener per sapere quando è finita la riproduzione dell'audio
+                // imposto il listener per sapere quando è finita la riproduzione dell'audio
                 .setAudioPlayingListener(new AudioPlayerManager.AudioPlayingListener() {
                     @Override
                     public void onPlayingFinish() {

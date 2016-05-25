@@ -1,5 +1,6 @@
 package it.tsamstudio.noteme;
 
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -22,7 +23,7 @@ import it.tsamstudio.noteme.utils.NoteMeApp;
 
 public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecyclerViewAdapter.DataObjectHolder> {
 
-    private static final String TAG = "NotesRecyclerViewAdapter";
+    private static final String TAG = "NotesRecyclerViewAdaptr";
 
     private ArrayList<Nota> mDataset;
     private static MyClickListener myClickListener;
@@ -90,20 +91,25 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         holder.creationDate.setText(date);
         holder.imgBackground.setImageDrawable(null);
         holder.imgBackground.setAlpha(0.25f);
+        holder.card.post(new Runnable() {
+            @Override
+            public void run() {
+                holder.card.setCardBackgroundColor(Color.WHITE);
+            }
+        });
 
         if (mDataset.get(position).getColor() != 0) {
             holder.card.post(new Runnable() {
                 @Override
                 public void run() {
-                    holder.card.getBackground().setColorFilter(
-                            mDataset.get(position).getColor(), PorterDuff.Mode.MULTIPLY);
+                    holder.card.setCardBackgroundColor(mDataset.get(position).getColor());
                 }
             });
         } else {
             holder.card.post(new Runnable() {
                 @Override
                 public void run() {
-                    holder.card.getBackground().setColorFilter(null);
+                    holder.card.setCardBackgroundColor(Color.WHITE);
                 }
             });
         }

@@ -33,10 +33,12 @@ public class Nota implements Parcelable {
 
     public Nota() {
         id = UUID.randomUUID().toString();
+        color = 0;
     }
 
     public Nota(String uuid) {
         id = uuid;
+        color = 0;
     }
 
     public String getID() {
