@@ -169,6 +169,7 @@ public class Nota implements Parcelable {
         audio = in.readString();
         creationDate = new Date(in.readLong());
         lastModifiedDate = new Date(in.readLong());
-        expireDate = new Date(in.readLong());
+        long longDate = in.readLong();
+        expireDate = (longDate == 0) ? null : new Date(longDate);
     }
 }

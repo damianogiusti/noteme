@@ -1,7 +1,7 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="400dp"
-    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:layout_height="430dp"
     android:background="@android:color/white"
     tools:context="it.tsamstudio.noteme.NuovaNotaFragment">
 
@@ -11,7 +11,7 @@
 
         <RelativeLayout
             android:id="@+id/relativo"
-            android:layout_width="315dp"
+            android:layout_width="match_parent"
             android:layout_height="415dp">
 
             <ImageView
