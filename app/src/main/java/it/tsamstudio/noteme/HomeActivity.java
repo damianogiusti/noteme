@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 
+import it.tsamstudio.noteme.utils.NoteMeUtils;
+
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         NuovaNotaFragment.INuovaNota,
@@ -155,7 +157,7 @@ public class HomeActivity extends AppCompatActivity
                 e.printStackTrace();
             }
         }
-        SwipeableRecyclerViewTouchListener swipeListener = new SwipeableRecyclerViewTouchListener(recyclerView,
+        final SwipeableRecyclerViewTouchListener swipeListener = new SwipeableRecyclerViewTouchListener(recyclerView,
                 new SwipeableRecyclerViewTouchListener.SwipeListener() {
                     @Override
                     public boolean canSwipeLeft(int position) {
@@ -173,47 +175,7 @@ public class HomeActivity extends AppCompatActivity
 
                     @Override
                     public void onDismissedBySwipeLeft(RecyclerView recyclerView, int[] reverseSortedPositions) {
-                        // TODO eliminazione con possibilità di ripristino
-                        final ArrayList<Nota> noteEliminate = new ArrayList<>(notesList.size());
-
-                        for (int i = 0; i < notesList.size(); i++)
-                            noteEliminate.add(null);
-
-                        for (int i : reverseSortedPositions) {
-                            noteEliminate.set(i, notesList.get(i));
-                            notesList.remove(i);
-                            mAdapter.notifyItemRemoved(i);
-                        }
-                        Snackbar snackNotaEliminata = Snackbar.make(recyclerView, getString(R.string.nota_eliminata), Snackbar.LENGTH_LONG);
-                        snackNotaEliminata.setAction(getString(R.string.annulla), new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                for (int i = 0; i < noteEliminate.size(); i++) {
-                                    if (noteEliminate.get(i) != null) {
-                                        notesList.add(i, noteEliminate.get(i));
-                                        mAdapter.notifyItemInserted(i);
-                                    }
-                                }
-//                                mAdapter.notifyDataSetChanged();
-                                noteEliminate.clear();
-                            }
-                        });
-                        snackNotaEliminata.setCallback(new Snackbar.Callback() {
-                            @Override
-                            public void onDismissed(Snackbar snackbar, int event) {
-                                super.onDismissed(snackbar, event);
-                                for (Nota n : noteEliminate) {
-                                    try {
-                                        if (n != null) {
-                                            database.eliminaNota(n);
-                                        }
-                                    } catch (CouchbaseLiteException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                        });
-                        snackNotaEliminata.show();
+                        deleteNotesByIndex(reverseSortedPositions);
                     }
 
                     @Override
@@ -225,6 +187,77 @@ public class HomeActivity extends AppCompatActivity
         recyclerView.addOnItemTouchListener(swipeListener);
         mAdapter = new NotesRecyclerViewAdapter(notesList);
         recyclerView.setAdapter(mAdapter);
+
+        // elimino le note scadute
+        recyclerView.post(new Runnable() {
+            @Override
+            public void run() {
+                recyclerView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Date today = new Date();
+                        ArrayList<Integer> indexPool = new ArrayList<>();
+                        for (int i = 0; i < notesList.size(); i++) {
+                            if (notesList.get(i).getExpireDate() != null &&
+                                    notesList.get(i).getExpireDate().before(today)) {
+                                indexPool.add(i);
+                            }
+                        }
+//                        for (int index : indexPool) {
+//                            notesList.remove(index);
+//                            mAdapter.notifyItemRemoved(index);
+//                        }
+//                        if (indexPool.size() > 0)
+//                            Snackbar.make(recyclerView, getString(R.string.note_scadute_eliminate), Snackbar.LENGTH_LONG).show();
+                        if (indexPool.size() > 0)
+                            deleteNotesByIndex(NoteMeUtils.arrayListToArray(indexPool));
+                    }
+                }, 500);
+            }
+        });
+    }
+
+    private void deleteNotesByIndex(int[] indexes) {
+        // TODO eliminazione con possibilità di ripristino
+        final ArrayList<Nota> noteEliminate = new ArrayList<>(notesList.size());
+
+        for (int i = 0; i < notesList.size(); i++)
+            noteEliminate.add(null);
+
+        for (int i : indexes) {
+            noteEliminate.set(i, notesList.get(i));
+            notesList.remove(i);
+            mAdapter.notifyItemRemoved(i);
+        }
+        Snackbar snackNotaEliminata = Snackbar.make(recyclerView, getString(R.string.nota_eliminata), Snackbar.LENGTH_LONG);
+        snackNotaEliminata.setAction(getString(R.string.annulla), new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (int i = 0; i < noteEliminate.size(); i++) {
+                    if (noteEliminate.get(i) != null) {
+                        notesList.add(i, noteEliminate.get(i));
+                        mAdapter.notifyItemInserted(i);
+                    }
+                }
+                noteEliminate.clear();
+            }
+        });
+        snackNotaEliminata.setCallback(new Snackbar.Callback() {
+            @Override
+            public void onDismissed(Snackbar snackbar, int event) {
+                super.onDismissed(snackbar, event);
+                for (Nota n : noteEliminate) {
+                    try {
+                        if (n != null) {
+                            database.eliminaNota(n);
+                        }
+                    } catch (CouchbaseLiteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        snackNotaEliminata.show();
     }
 
 

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -340,5 +341,13 @@ public class NoteMeUtils {
 
     public static String intColorToHex(int color) {
         return String.format("#%06X", (0xFFFFFF & color));
+    }
+
+    public static int[] arrayListToArray(ArrayList<Integer> arrayList) {
+        int[] array = new int[arrayList.size()];
+        for (int i = 0; i< arrayList.size(); i++) {
+            array[i] = arrayList.get(i);
+        }
+        return array;
     }
 }

@@ -19,10 +19,13 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -241,7 +244,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             @Override
             public void onClick(View view) {
                 listener.onButtonClick(HomeActivity.GALLERY_CODE);
-//                Log.d("onLongPress", "" + tapBarMenu.getCurrentItem());
             }
         });
 
@@ -276,9 +278,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                     public void call(Object... args) {
                         if (args.length == 1) {
                             expirationDate = new Date(((long) args[0]));
-                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", NoteMeApp.getInstance().getLocale());
-                            txtDataScadenza.setText(getString(R.string.scade) + " " + sdf.format(expirationDate));
-                            txtDataScadenza.setVisibility(View.VISIBLE);
+                            setExpirationDatePreview();
                         }
                     }
                 });
@@ -295,13 +295,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                     @Override
                     public void OnColorClick(View v, final int color) {
                         noteColor = color;
-                        dialogView.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                dialogView.setBackgroundColor(noteColor);
-//                                dialogView.getBackground().setAlpha(((int) Math.floor(255 * 0.5)));
-                            }
-                        });
+                        setColorPreview();
                     }
                 });
                 dialog.show();
@@ -335,6 +329,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        // ripristino lo stato del fragment
         if (savedInstanceState != null) {
             guid = savedInstanceState.getString(TAG_GUID_FOR_BUNDLE);
             isKeyboardShown = savedInstanceState.getBoolean(TAG_KEYBOARD_FOR_BUNDLE);
@@ -350,10 +346,18 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             }
             expirationDate = (savedInstanceState.getLong(TAG_EXPIRATION_DATE_FOR_BUNDLE) > 0
                     ? new Date(savedInstanceState.getLong(TAG_EXPIRATION_DATE_FOR_BUNDLE)) : null);
+            if (expirationDate != null) {
+                setExpirationDatePreview();
+            }
             isRecording = savedInstanceState.getBoolean(TAG_IS_RECORDING_FOR_BUNDLE);
             titolo.setText(savedInstanceState.getString(TAG_TITLE_NOTA_FOR_BUNDLE));
             etxtNota.setText(savedInstanceState.getString(TAG_BODY_NOTA_FOR_BUNDLE));
             noteColor = savedInstanceState.getInt(TAG_COLOR_FOR_BUNDLE);
+            if (noteColor != 0) {
+                setColorPreview();
+            }
+            updateBottomMenu();
+            savedInstanceState.clear();
         }
     }
 
@@ -390,22 +394,36 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void updateBottomMenu() {
-        menuImgAttach.setEnabled(true);
-        menuImgMic.setEnabled(true);
-        menuImgCamera.setEnabled(true);
 
-        if (menuImgAttach != null && menuImgMic != null && menuImgCamera != null) {     // non serve :/
-            if (imageOutputPath != null) {
-                menuImgAttach.setEnabled(false);
-                menuImgCamera.setEnabled(false);
+        // se queste callback ritornano true, onClickListener non viene chiamato
+
+        menuImgAttach.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (imageOutputPath != null)
+                    v.startAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.wiggle));
+                return imageOutputPath != null;
             }
-            if (audioOutputPath != null) {
-                menuImgMic.setEnabled(false);
+        });
+        menuImgCamera.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (imageOutputPath != null)
+                    v.startAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.wiggle));
+                return imageOutputPath != null;
             }
-        }
+        });
+        menuImgMic.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (audioOutputPath != null)
+                    v.startAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.wiggle));
+                return audioOutputPath != null;
+            }
+        });
     }
 
-    //metodo chiamato quando viene chiuso il dialog per salvare la etxtNota
+    // metodo chiamato quando viene chiuso il dialog per salvare la nota
     private Nota saveNote() {
         String titoloTemp = titolo.getText().toString().trim();
         String testoTemp = etxtNota.getText().toString().trim();
@@ -423,7 +441,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             } else {
                 nota = db.leggiNota(guid);
             }
-            if(nota == null){
+            if (nota == null) {
                 nota = new Nota();
             }
             guid = nota.getID();
@@ -454,7 +472,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void startRecording() {
-
         mRecorder = setupRecorderWithPermission();
         if (mRecorder != null) {
             try {
@@ -567,16 +584,44 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 
     }
 
-/*
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CAMERA_REQUEST) {
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-            Bitmap bitmap = BitmapFactory.decodeFile(imageOutputPath, options);
+    public void activityResult(final Intent intent, final int requestCode) {
+        immagine.setVisibility(View.VISIBLE);
 
-            // immagine.setImageBitmap(bitmap); TODO ora come ora fa crashare l'app perchè 'immagine' non esiste
-        }
-    }*/
+        new AsyncTask<Void, Void, Void>() {
+            File file;
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    // salvo una copia dell'immagine in una directory a parte
+                    file = NoteMeUtils.saveCompressedPicture(intent.getData(), 50);
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                imageOutputPath = file.getPath();
+                Log.d(TAG, "onPostExecute: " + imageOutputPath);
+                setImagePreview();
+                updateBottomMenu();
+            }
+        }.execute();
+    }
 
     private void setAudioPreview() {
 
@@ -646,45 +691,6 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         immagineAudio.setOnLongClickListener(onLongClickListener);
     }
 
-    public void activityResult(final Intent intent, final int requestCode) {
-        immagine.setVisibility(View.VISIBLE);
-
-        new AsyncTask<Void, Void, Void>() {
-            File file;
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-
-            }
-
-            @Override
-            protected Void doInBackground(Void... params) {
-                try {
-                    // salvo una copia dell'immagine in una directory a parte
-                    file = NoteMeUtils.saveCompressedPicture(intent.getData(), 50);
-
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                imageOutputPath = file.getPath();
-                Log.d(TAG, "onPostExecute: " + imageOutputPath);
-                setImagePreview();
-                updateBottomMenu();
-            }
-        }.execute();
-    }
-
     private void setImagePreview() {
         Log.d("IMAGE_PATH", imageOutputPath);
         immagine.setVisibility(View.VISIBLE);
@@ -728,6 +734,21 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                         .resize(immagine.getWidth(), immagine.getHeight())
                         .centerCrop()
                         .into(immagine);
+            }
+        });
+    }
+
+    private void setExpirationDatePreview() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", NoteMeApp.getInstance().getLocale());
+        txtDataScadenza.setText(getString(R.string.scade) + " " + sdf.format(expirationDate));
+        txtDataScadenza.setVisibility(View.VISIBLE);
+    }
+
+    private void setColorPreview() {
+        dialogView.post(new Runnable() {
+            @Override
+            public void run() {
+                dialogView.setBackgroundColor(noteColor);
             }
         });
     }

@@ -33,10 +33,12 @@ public class Nota implements Parcelable {
 
     public Nota() {
         id = UUID.randomUUID().toString();
+        color = 0;
     }
 
     public Nota(String uuid) {
         id = uuid;
+        color = 0;
     }
 
     public String getID() {
@@ -167,6 +169,7 @@ public class Nota implements Parcelable {
         audio = in.readString();
         creationDate = new Date(in.readLong());
         lastModifiedDate = new Date(in.readLong());
-        expireDate = new Date(in.readLong());
+        long longDate = in.readLong();
+        expireDate = (longDate == 0) ? null : new Date(longDate);
     }
 }
