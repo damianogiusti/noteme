@@ -308,11 +308,12 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             public void onClick(View v) {
                 // TODO visualizzare tooltip
                 if(isToolTipShown == false){
-                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.tapBarMenu));
+                    if(myToolTipView ==  null)
+                        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.tapBarMenu));
+                    myToolTipView.setVisibility(View.VISIBLE);
                     isToolTipShown = true;
                 }else{
-                    myToolTipView.removeView(toolTipRelativeLayout);
-                    myToolTipView.remove();
+                    myToolTipView.setVisibility(View.INVISIBLE);
                     isToolTipShown = false;
                 }
             }
