@@ -7,20 +7,21 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:id="@+id/newNoteScrollView">
 
         <RelativeLayout
             android:id="@+id/relativo"
             android:layout_width="315dp"
-            android:layout_height="415dp">
+            android:layout_height="350dp">
 
             <ImageView
                 android:id="@+id/immagine"
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
+                android:layout_below="@+id/tagSettings"
                 android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true" />
+                android:layout_alignParentStart="true" />
 
 
             <LinearLayout
@@ -116,23 +117,15 @@
 
                 </LinearLayout>
             </RelativeLayout>
-
-            <com.nhaarman.supertooltips.ToolTipRelativeLayout
-                android:id="@+id/tooltipRelativeLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/relativeLayout" />
-
         </RelativeLayout>
     </ScrollView>
+
 
     <com.michaldrabik.tapbarmenulib.TapBarMenu xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/tapBarMenu"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:layout_below="@+id/relativo"
+        android:layout_below="@+id/tooltipRelativeLayout"
         android:layout_gravity="bottom"
         app:layout_behavior="it.tsamstudio.noteme.utils.ShrinkBehavior">
 
@@ -195,6 +188,15 @@
             android:src="@drawable/ic_tag" />
 
     </com.michaldrabik.tapbarmenulib.TapBarMenu>
+
+
+    <com.nhaarman.supertooltips.ToolTipRelativeLayout
+        android:id="@+id/tooltipRelativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="60dp"
+        />
 
 </android.support.design.widget.CoordinatorLayout>
 

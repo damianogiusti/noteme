@@ -107,9 +107,10 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
 
     private boolean isKeyboardShown;
 
-    public ToolTipView myToolTipView;
-    public ToolTip toolTip;
-    public View v;
+    private ToolTipRelativeLayout toolTipRelativeLayout;
+    private ToolTipView myToolTipView;
+    private ToolTip toolTip;
+    private Boolean isToolTipShown = false;
 
     INuovaNota listener = new INuovaNota() {
         @Override
@@ -213,7 +214,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         recordingTimer = new Timer();
         timerTime = new Date(0);
 
-        ToolTipRelativeLayout toolTipRelativeLayout = (ToolTipRelativeLayout) dialogView.findViewById(R.id.tooltipRelativeLayout);
+        toolTipRelativeLayout = (ToolTipRelativeLayout) dialogView.findViewById(R.id.tooltipRelativeLayout);
 
         toolTip = new ToolTip()
                 .withContentView(LayoutInflater.from(getActivity()).inflate(R.layout.edittext_layout_tooltip, null)) // per contenuto customizzato
@@ -221,8 +222,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                 .withShadow();
         View vTool = toolTip.getContentView();
         tag = (EditText) vTool.findViewById(R.id.tagInToolTip);
-        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.menuImgExpireDate));
-        myToolTipView.setOnToolTipViewClickedListener(this);
+//        myToolTipView.setOnToolTipViewClickedListener(this);
 
         tapBarMenu = (TapBarMenu) dialogView.findViewById(R.id.tapBarMenu);
 
@@ -313,6 +313,14 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             @Override
             public void onClick(View v) {
                 // TODO visualizzare tooltip
+                if(isToolTipShown == false){
+                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.tapBarMenu));
+                    isToolTipShown = true;
+                }else{
+                    myToolTipView.removeView(toolTipRelativeLayout);
+                    myToolTipView.remove();
+                    isToolTipShown = false;
+                }
             }
         });
 
