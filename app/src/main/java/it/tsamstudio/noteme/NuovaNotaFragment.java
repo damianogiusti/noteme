@@ -180,6 +180,8 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         super.onDetach();
         Log.d(TAG, "onDETACH");
         listener.onNuovaNotaAggiunta(saveNote());
+        isToolTipShown = false;
+        myToolTipView = null;
         imageOutputPath = null;
         audioOutputPath = null;
     }
@@ -309,8 +311,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         menuImgTag.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO visualizzare tooltip
-                if (isToolTipShown == false) {
+                if (!isToolTipShown) {
                     if (myToolTipView == null)
                         myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.tapBarMenu));
                     myToolTipView.setVisibility(View.VISIBLE);
@@ -453,7 +454,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             nota.setTitle("" + titoloNota);
             nota.setText("" + testoTemp);
             nota.setColor(noteColor);
-            nota.setTag("" + tagTemp);
+            nota.setTag("" + tagTemp.toUpperCase().trim());
             nota.setCreationDate(new Date());
             nota.setLastModifiedDate(new Date());
             nota.setExpireDate(expirationDate);

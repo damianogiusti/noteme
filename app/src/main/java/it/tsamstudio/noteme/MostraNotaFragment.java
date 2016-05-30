@@ -59,6 +59,8 @@ public class MostraNotaFragment extends DialogFragment {
     private boolean isZoomedImageShowing;
     // scadenza nota
     private TextView txtExpirationDate;
+    // tag
+    private TextView txtTag;
 
     private final static String NOTA_KEY_FOR_BUNDLE = "notaParceable";
     private final static String POSITION_KEY_FOR_BUNDLE = "posizioneNota";
@@ -187,6 +189,15 @@ public class MostraNotaFragment extends DialogFragment {
 
         } else {
             imgThumbnail.setVisibility(View.GONE);
+        }
+
+        // se ho una nota con tag mostro il tag, altrimenti non mostro nulla
+        txtTag = (TextView) dialogNoteView.findViewById(R.id.txtTag);
+        if (nota.getTag() != null) {
+            txtTag.setVisibility(View.VISIBLE);
+            txtTag.setText(nota.getTag());
+        } else {
+            txtTag.setVisibility(View.GONE);
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
