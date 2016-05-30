@@ -126,7 +126,7 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
         if (mDataset.get(position).getTag() != null &&
                 mDataset.get(position).getTag().trim().length() > 0) {
             holder.tag.setVisibility(View.VISIBLE);
-            holder.tag.setText(mDataset.get(position).getTag());
+            holder.tag.setText(mDataset.get(position).getTag().toUpperCase());
         } else {
             holder.tag.setVisibility(View.GONE);
         }
