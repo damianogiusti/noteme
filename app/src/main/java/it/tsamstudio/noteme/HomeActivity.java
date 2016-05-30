@@ -344,8 +344,6 @@ public class HomeActivity extends AppCompatActivity
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(TAG_LIST_NOTE_FOR_BUNDLE, notesList);
 
-//        outState.putParcelable(TAG_LIST_STATE_FOR_BUNDLE, mLayoutManager.onSaveInstanceState());
-
         if (nuovaNotaFragment != null &&
                 getSupportFragmentManager().findFragmentByTag(TAG_DIALOG_NUOVA_NOTA) != null) {
             getSupportFragmentManager().putFragment(outState, TAG_DIALOG_NUOVA_NOTA, nuovaNotaFragment);

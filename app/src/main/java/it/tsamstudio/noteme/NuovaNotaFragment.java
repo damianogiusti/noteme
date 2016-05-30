@@ -24,7 +24,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -243,7 +242,11 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         menuImgAttach.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                listener.onButtonClick(HomeActivity.GALLERY_CODE);
+                if (!NoteMeUtils.needsToAskForPermissions(getActivity())) {
+                    listener.onButtonClick(HomeActivity.GALLERY_CODE);
+                } else {
+                    NoteMeUtils.askForPermissions(getActivity());
+                }
             }
         });
 
@@ -307,12 +310,12 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             @Override
             public void onClick(View v) {
                 // TODO visualizzare tooltip
-                if(isToolTipShown == false){
-                    if(myToolTipView ==  null)
+                if (isToolTipShown == false) {
+                    if (myToolTipView == null)
                         myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.tapBarMenu));
                     myToolTipView.setVisibility(View.VISIBLE);
                     isToolTipShown = true;
-                }else{
+                } else {
                     myToolTipView.setVisibility(View.INVISIBLE);
                     isToolTipShown = false;
                 }
