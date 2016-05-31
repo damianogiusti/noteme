@@ -26,17 +26,17 @@ public class S3Manager {
      * TODO pensare bene come implementarla
      */
     public interface OnTransferListener {
-        void onStart();
+        void onStart(int transferID);
 
-        void onProgressChanged(long bytesCurrent, long totalBytes);
+        void onProgressChanged(int transferID, long bytesCurrent, long totalBytes);
 
-        void onWaitingForNetwork();
+        void onWaitingForNetwork(int transferID);
 
-        void onFinish();
+        void onFinish(int transferID);
 
-        void onFailure();
+        void onFailure(int transferID);
 
-        void onError(Exception e);
+        void onError(int transferID, Exception e);
     }
 
     private static final String BUCKET_NAME = "tsac-its";
@@ -72,37 +72,7 @@ public class S3Manager {
     public void uploadNote(Nota nota, OnTransferListener transferListener) throws IOException {
         if (transferListener == null) {
             // dummy init
-            transferListener = new OnTransferListener() {
-                @Override
-                public void onStart() {
-
-                }
-
-                @Override
-                public void onProgressChanged(long bytesCurrent, long totalBytes) {
-
-                }
-
-                @Override
-                public void onWaitingForNetwork() {
-
-                }
-
-                @Override
-                public void onFinish() {
-
-                }
-
-                @Override
-                public void onFailure() {
-
-                }
-
-                @Override
-                public void onError(Exception e) {
-
-                }
-            };
+            transferListener = dummyInitForListener();
         }
         final OnTransferListener listener = transferListener;
 
@@ -116,24 +86,24 @@ public class S3Manager {
                         @Override
                         public void onStateChanged(int id, TransferState state) {
                             if (state == TransferState.IN_PROGRESS) {
-                                listener.onStart();
+                                listener.onStart(id);
                             } else if (state == TransferState.COMPLETED) {
-                                listener.onFinish();
+                                listener.onFinish(id);
                             } else if (state == TransferState.FAILED) {
-                                listener.onFailure();
+                                listener.onFailure(id);
                             } else if (state == TransferState.WAITING_FOR_NETWORK) {
-                                listener.onWaitingForNetwork();
+                                listener.onWaitingForNetwork(id);
                             }
                         }
 
                         @Override
                         public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                            listener.onProgressChanged(bytesCurrent, bytesTotal);
+                            listener.onProgressChanged(id, bytesCurrent, bytesTotal);
                         }
 
                         @Override
                         public void onError(int id, Exception ex) {
-                            listener.onError(ex);
+                            listener.onError(id, ex);
                         }
                     });
         }
@@ -159,5 +129,39 @@ public class S3Manager {
     public List<Nota> sync() {
         // TODO
         return null;
+    }
+
+    private OnTransferListener dummyInitForListener() {
+        return new OnTransferListener() {
+            @Override
+            public void onStart(int transferID) {
+
+            }
+
+            @Override
+            public void onProgressChanged(int transferID, long bytesCurrent, long totalBytes) {
+
+            }
+
+            @Override
+            public void onWaitingForNetwork(int transferID) {
+
+            }
+
+            @Override
+            public void onFinish(int transferID) {
+
+            }
+
+            @Override
+            public void onFailure(int transferID) {
+
+            }
+
+            @Override
+            public void onError(int transferID, Exception e) {
+
+            }
+        };
     }
 }
