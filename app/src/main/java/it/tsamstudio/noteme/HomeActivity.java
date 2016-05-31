@@ -183,11 +183,12 @@ public class HomeActivity extends AppCompatActivity
 
         for (int i = 0; i < notesList.size(); i++)
             noteEliminate.add(null);
-
-        for (int i : indexes) {
+        
+        // ciclo gli indici al contrario per non tirare IndexOutOfBoundsException
+        for (int i = indexes.length - 1; i >= 0; i--) {
             noteEliminate.set(i, notesList.get(i));
-            notesList.remove(i);
-            mAdapter.notifyItemRemoved(i);
+            notesList.remove(indexes[i]);
+            mAdapter.notifyItemRemoved(indexes[i]);
         }
         Snackbar snackNotaEliminata = Snackbar.make(recyclerView, getString(R.string.nota_eliminata), Snackbar.LENGTH_LONG);
         snackNotaEliminata.setAction(getString(R.string.annulla), new View.OnClickListener() {

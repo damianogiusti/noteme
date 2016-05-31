@@ -1,11 +1,13 @@
 package it.tsamstudio.noteme;
 
+import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -29,8 +31,15 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
     private static MyClickListener myClickListener;
 
     public static class DataObjectHolder extends RecyclerView.ViewHolder
-            implements View
-            .OnClickListener {
+            implements View.OnClickListener,
+            View.OnCreateContextMenuListener,
+            MenuItem.OnMenuItemClickListener,
+            View.OnLongClickListener {
+
+        private static final int ID_MENUITEM_SHARE = 13341234;
+
+        Intent shareIntent;
+
         TextView title;
         TextView content;
         TextView tag;
@@ -51,13 +60,50 @@ public class NotesRecyclerViewAdapter extends RecyclerView.Adapter<NotesRecycler
             micImg = (ImageView) itemView.findViewById(R.id.micImgView);
             imgBackground = (ImageView) itemView.findViewById(R.id.imgBackground);
             itemView.setOnClickListener(this);
+            itemView.setOnCreateContextMenuListener(this);
+            itemView.setOnLongClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
             myClickListener.onItemClick(getAdapterPosition(), v);
         }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            MenuItem myActionItem = menu.add(0, ID_MENUITEM_SHARE, 0, R.string.share);
+            myActionItem.setIcon(R.drawable.ic_share);
+            myActionItem.setOnMenuItemClickListener(this);
+        }
+
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            switch (item.getItemId()) {
+                case ID_MENUITEM_SHARE:
+                    if (shareIntent != null) {
+                        NoteMeApp.getInstance().getApplicationContext().startActivity(shareIntent);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            shareIntent = null;
+            return false;
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            Log.d(TAG, "onLongClick: " + title.getText());
+            shareIntent = new Intent();
+            shareIntent.setAction(Intent.ACTION_SEND);
+            String text = String.format("%s\r\n%s", title.getText(), content.getText());
+            shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            shareIntent.setType("text/plain");
+            return false;
+        }
     }
+
 
     public void setOnItemClickListener(MyClickListener myClickListener) {
         this.myClickListener = myClickListener;
