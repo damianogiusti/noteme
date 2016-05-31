@@ -23,6 +23,6 @@
     <string name="scade">Scade il:</string>
     <string name="scegli_un_colore">Scegli un colore</string>
     <string name="note_scadute_eliminate">Note scadute eliminate.</string>
-    <string name="action_search">Search</string>
-    <string name="share">Share</string>
+    <string name="action_search">Cerca</string>
+    <string name="share">Condividi</string>
 </resources>

@@ -23,8 +23,8 @@
     <string name="stop">Stop</string>
     <string name="eliminare_foto">Remove attached picture?</string>
     <string name="scade">Expires: </string>
-    <string name="scegli_un_colore">Scegli un colore</string>
-    <string name="note_scadute_eliminate">Note scadute eliminate.</string>
+    <string name="scegli_un_colore">Select a color</string>
+    <string name="note_scadute_eliminate">Expired notes deleted.</string>
     <string name="action_search">Search</string>
     <string name="share">Share</string>
 </resources>

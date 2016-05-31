@@ -183,7 +183,7 @@ public class HomeActivity extends AppCompatActivity
 
         for (int i = 0; i < notesList.size(); i++)
             noteEliminate.add(null);
-        
+
         // ciclo gli indici al contrario per non tirare IndexOutOfBoundsException
         for (int i = indexes.length - 1; i >= 0; i--) {
             noteEliminate.set(i, notesList.get(i));
