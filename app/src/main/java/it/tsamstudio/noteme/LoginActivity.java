@@ -3,7 +3,6 @@ package it.tsamstudio.noteme;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -43,7 +42,16 @@ public class LoginActivity extends AppCompatActivity {
                     String password = txtPassword.getText().toString().trim();
                     if (validaUtente(username, password)) {
                         User.getInstance().initWithCredentials(username, password);
-                        
+//                        try {
+//                            for (Nota nota : CouchbaseDB.getInstance().leggiNote()) {
+//                                S3Manager.getInstance().uploadNota(nota, null);
+//                            }
+//                        } catch (CouchbaseLiteException e) {
+//                            e.printStackTrace();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+                        S3Manager.getInstance().downloadAllNotes(null);
                     } else {
                         if (NoteMeUtils.isBlank(username)) {
                             txtUsername.requestFocus();

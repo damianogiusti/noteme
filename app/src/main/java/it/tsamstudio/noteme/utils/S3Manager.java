@@ -1,5 +1,8 @@
 package it.tsamstudio.noteme.utils;
 
+import android.os.AsyncTask;
+import android.util.Log;
+
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
@@ -7,9 +10,18 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scottyab.aescrypt.AESCrypt;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.List;
 
 import it.tsamstudio.noteme.CouchbaseDB;
@@ -19,6 +31,8 @@ import it.tsamstudio.noteme.Nota;
  * Created by damianogiusti on 31/05/16.
  */
 public class S3Manager {
+
+    private static final String TAG = "S3Manager";
 
     /**
      * Interfaccia che penso useremo per tornare indietro lo stato del trasferimento,
@@ -41,6 +55,9 @@ public class S3Manager {
 
     private static final String BUCKET_NAME = "tsac-its";
     private static final String BUCKET_DIR = "noteme/";
+    private static final String BUCKET_NOTES_DIR = BUCKET_DIR + "notes/";
+    private static final String BUCKET_IMAGES_DIR = BUCKET_DIR + "images/";
+    private static final String BUCKET_AUDIO_DIR = BUCKET_DIR + "audio/";
 
     private static S3Manager instance;
 
@@ -69,7 +86,7 @@ public class S3Manager {
      *
      * @param nota Nota da caricare
      */
-    public void uploadNote(Nota nota, OnTransferListener transferListener) throws IOException {
+    public void uploadNota(Nota nota, OnTransferListener transferListener) throws IOException {
         if (transferListener == null) {
             // dummy init
             transferListener = dummyInitForListener();
@@ -80,7 +97,13 @@ public class S3Manager {
         noteFiles = CouchbaseDB.getInstance().getNoteFiles(nota.getID());
 
         for (File file : noteFiles) {
-            transferUtility.upload(BUCKET_NAME, BUCKET_DIR + file.getName(), file)
+            String bucketDir = BUCKET_NOTES_DIR;
+            if (file.getName().endsWith(".jpeg")) {
+                bucketDir = BUCKET_IMAGES_DIR;
+            } else if (file.getName().endsWith(".3gp")) {
+                bucketDir = BUCKET_AUDIO_DIR;
+            }
+            transferUtility.upload(BUCKET_NAME, bucketDir + file.getName(), file)
                     .setTransferListener(new TransferListener() {
                         @Override
                         public void onStateChanged(int id, TransferState state) {
@@ -113,8 +136,135 @@ public class S3Manager {
      *
      * @return Lista di note scaricate
      */
-    public List<Nota> downloadAllNotes() {
-        // TODO
+    public List<Nota> downloadAllNotes(OnTransferListener transferListener) {
+
+        if (transferListener == null) {
+            transferListener = dummyInitForListener();
+        }
+        final OnTransferListener listener = transferListener;
+
+        new AsyncTask<Void, Void, Void>() {
+            List<String> notesKeys;
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                ObjectListing objectListing = amazonS3.listObjects(BUCKET_NAME, BUCKET_NOTES_DIR);
+                List<S3ObjectSummary> summaries = objectListing.getObjectSummaries();
+
+                while (objectListing.isTruncated()) {
+                    objectListing = amazonS3.listNextBatchOfObjects(objectListing);
+                    summaries.addAll(objectListing.getObjectSummaries());
+                }
+                notesKeys = new ArrayList<>(summaries.size());
+                for (S3ObjectSummary objectSummary : summaries) {
+                    notesKeys.add(objectSummary.getKey());
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+
+                if (notesKeys != null) {
+                    final List<Nota> notesList = new ArrayList<>(notesKeys.size());
+
+                    TransferUtility transferUtility = new TransferUtility(amazonS3, NoteMeApp.getInstance());
+
+                    final Callback scaricamentoNoteFinito = new Callback() {
+                        @Override
+                        public void call(Object... args) {
+                            // ho finito lo scaricamento delle note
+                            // posso scaricarmi i file multimediali
+                            Log.d(TAG, "call: ");
+                        }
+                    };
+
+                    for (String key : notesKeys) {
+                        // ottengo un filename come questo: noteme/notes/c31c06b2-ac23-4c9d-9f3e-2701b159fd00.note
+                        String filename = (key.split("/")[2]).replace(".note", "");
+                        File tempFile = null;
+                        try {
+                            tempFile = File.createTempFile(filename, "");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if (tempFile != null) {
+                            final File file = tempFile;
+                            transferUtility.download(BUCKET_NAME, key, tempFile)
+                                    .setTransferListener(new TransferListener() {
+                                        @Override
+                                        public void onStateChanged(int id, TransferState state) {
+                                            // se ho scaricato il file
+                                            if (state == TransferState.COMPLETED) {
+                                                BufferedReader reader = null;
+                                                try {
+                                                    // creo un reader dal file scaricato
+                                                    reader = new BufferedReader(new FileReader(file));
+                                                } catch (FileNotFoundException e) {
+                                                    e.printStackTrace();
+                                                }
+                                                // se ho il reader
+                                                if (reader != null) {
+                                                    String encryptedNote = null;
+                                                    try {
+                                                        // leggo la nota criptata nel file
+                                                        encryptedNote = reader.readLine();
+                                                    } catch (IOException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                    // se ho letto la nota
+                                                    if (encryptedNote != null) {
+                                                        String decryptedNote = null;
+                                                        try {
+                                                            // decripto la nota
+                                                            decryptedNote = AESCrypt.decrypt(NoteMeUtils.AES_KEY, encryptedNote);
+                                                        } catch (GeneralSecurityException e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                        // se ho decriptato la nota
+                                                        if (decryptedNote != null) {
+                                                            try {
+                                                                // la aggiungo in lista
+                                                                notesList.add((new ObjectMapper()).readValue(decryptedNote, Nota.class));
+                                                                if (notesList.size() == notesKeys.size()) {
+                                                                    // callback per notificare la fine dello scaricamento delle note
+                                                                    scaricamentoNoteFinito.call(notesList);
+                                                                }
+                                                            } catch (IOException e) {
+                                                                e.printStackTrace();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                // se ho un errore lo mando su
+                                            } else if (state == TransferState.FAILED) {
+                                                listener.onFailure(id);
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+
+                                        }
+
+                                        @Override
+                                        public void onError(int id, Exception ex) {
+                                            listener.onError(id, ex);
+                                        }
+                                    });
+                        }
+
+                    }
+                }
+            }
+        }.execute();
+
         return null;
     }
 
