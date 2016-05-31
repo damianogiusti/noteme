@@ -451,10 +451,10 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             }
             guid = nota.getID();
             String titoloNota = (titoloTemp.length() > 0 ? titoloTemp : "Nota senza titolo");
-            nota.setTitle("" + titoloNota);
-            nota.setText("" + testoTemp);
+            nota.setTitle(titoloNota);
+            nota.setText(testoTemp);
             nota.setColor(noteColor);
-            nota.setTag("" + tagTemp.toUpperCase().trim());
+            nota.setTag(tagTemp.toUpperCase().trim());
             nota.setCreationDate(new Date());
             nota.setLastModifiedDate(new Date());
             nota.setExpireDate(expirationDate);

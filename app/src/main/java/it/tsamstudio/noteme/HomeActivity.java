@@ -48,6 +48,7 @@ public class HomeActivity extends AppCompatActivity
     private NotesRecyclerViewAdapter mAdapter;
     private RecyclerView.Adapter searchAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    private FloatingActionButton fab;
 
     private NuovaNotaFragment nuovaNotaFragment;
     private MostraNotaFragment fragmentMostraNota;
@@ -72,7 +73,7 @@ public class HomeActivity extends AppCompatActivity
 //            mLayoutManager.onRestoreInstanceState(savedInstanceState.getParcelable(TAG_LIST_STATE_FOR_BUNDLE));
         }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null) {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -90,20 +91,24 @@ public class HomeActivity extends AppCompatActivity
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                //ricerca dopo invio
                 return false;
             }
 
             //ricerca quando il testo nella searchview cambia
             @Override
             public boolean onQueryTextChange(String newText) {
+                if (fab.isShown())
+                    fab.setVisibility(View.GONE);
+
+                newText = newText.toLowerCase().trim();
 
                 searchList = new ArrayList<>();
                 searchAdapter = new NotesRecyclerViewAdapter(searchList);
                 recyclerView.swapAdapter(searchAdapter, false);
                 for (Nota x : notesList) {
-                    if (x.getText().toLowerCase()
-                            .contains(newText.toLowerCase().trim())) {
+                    if (x.getText().toLowerCase().contains(newText) ||
+                            x.getTitle().toLowerCase().contains(newText) ||
+                            x.getTag().toLowerCase().contains(newText)) {
                         searchList.add(x);
                     }
                 }
@@ -121,9 +126,11 @@ public class HomeActivity extends AppCompatActivity
             public void onClick(View v) {
                 searchView.setQuery("", false);
                 searchView.setIconified(true);
-                searchList.clear();
+//                searchList.clear();
                 recyclerView.swapAdapter(mAdapter, false);
+                searchAdapter = null;
                 searchList = null;
+                fab.setVisibility(View.VISIBLE);
             }
         });
 
