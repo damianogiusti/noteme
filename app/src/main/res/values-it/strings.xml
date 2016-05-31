@@ -28,4 +28,5 @@
     <string name="form_username">Username</string>
     <string name="form_password">Password</string>
     <string name="form_login">Login</string>
+    <string name="invalid_credentials">Invalid credentials, please check if you made some texting mistakes.</string>
 </resources>

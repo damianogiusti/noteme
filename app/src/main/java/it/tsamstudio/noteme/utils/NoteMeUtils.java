@@ -350,4 +350,8 @@ public class NoteMeUtils {
         }
         return array;
     }
+
+    public static boolean isBlank(String string) {
+        return string == null || string.trim().equals("");
+    }
 }
