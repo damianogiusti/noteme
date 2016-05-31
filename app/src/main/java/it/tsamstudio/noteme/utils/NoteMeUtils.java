@@ -127,7 +127,7 @@ public class NoteMeUtils {
      * @throws IOException
      */
     public static File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", NoteMeApp.getInstance().getLocale()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = NoteMeApp.getInstance().getApplicationContext().getExternalFilesDir(
                 Environment.DIRECTORY_PICTURES);

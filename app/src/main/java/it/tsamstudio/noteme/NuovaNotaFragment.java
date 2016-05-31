@@ -621,7 +621,9 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                imageOutputPath = file.getPath();
+                if (file != null) {
+                    imageOutputPath = file.getPath();
+                }
                 Log.d(TAG, "onPostExecute: " + imageOutputPath);
                 setImagePreview();
                 updateBottomMenu();
@@ -698,50 +700,55 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void setImagePreview() {
-        Log.d("IMAGE_PATH", imageOutputPath);
-        immagine.setVisibility(View.VISIBLE);
-        immagine.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
-                dialogBuilder.setMessage(getString(R.string.eliminare_foto))
-                        .setPositiveButton(getString(R.string.elimina), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (imageOutputPath != null) {
-                                    File file = new File(imageOutputPath);
-                                    if (file.exists()) {
-                                        if (file.delete()) {
-                                            immagine.setVisibility(View.GONE);
-                                            imageOutputPath = null;
-                                            updateBottomMenu();
+        if (imageOutputPath != null) {
+
+            Log.d("IMAGE_PATH", "" + imageOutputPath);
+            immagine.setVisibility(View.VISIBLE);
+            immagine.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+                    dialogBuilder.setMessage(getString(R.string.eliminare_foto))
+                            .setPositiveButton(getString(R.string.elimina), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (imageOutputPath != null) {
+                                        File file = new File(imageOutputPath);
+                                        if (file.exists()) {
+                                            if (file.delete()) {
+                                                immagine.setVisibility(View.GONE);
+                                                imageOutputPath = null;
+                                                updateBottomMenu();
+                                            }
                                         }
                                     }
+                                    dialog.dismiss();
                                 }
-                                dialog.dismiss();
-                            }
-                        })
-                        .setNegativeButton(getString(R.string.annulla), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                Dialog dialog = dialogBuilder.create();
-                dialog.show();
-                return false;
-            }
-        });
-        immagine.post(new Runnable() {
-            @Override
-            public void run() {
-                Picasso.with(getContext())
-                        .load(new File(imageOutputPath))
-                        .resize(immagine.getWidth(), immagine.getHeight())
-                        .centerCrop()
-                        .into(immagine);
-            }
-        });
+                            })
+                            .setNegativeButton(getString(R.string.annulla), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    Dialog dialog = dialogBuilder.create();
+                    dialog.show();
+                    return false;
+                }
+            });
+            immagine.post(new Runnable() {
+                @Override
+                public void run() {
+                    Picasso.with(getContext())
+                            .load(new File(imageOutputPath))
+                            .resize(immagine.getWidth(), immagine.getHeight())
+                            .centerCrop()
+                            .into(immagine);
+                }
+            });
+        } else {
+            immagine.setVisibility(View.GONE);
+        }
     }
 
     private void setExpirationDatePreview() {

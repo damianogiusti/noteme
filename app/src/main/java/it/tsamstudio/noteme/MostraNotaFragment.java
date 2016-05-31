@@ -10,7 +10,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.text.method.HideReturnsTransformationMethod;
 import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,7 +28,6 @@ import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import it.tsamstudio.noteme.utils.AudioPlayerManager;
 import it.tsamstudio.noteme.utils.NoteMeApp;
@@ -195,7 +193,7 @@ public class MostraNotaFragment extends DialogFragment {
         txtTag = (TextView) dialogNoteView.findViewById(R.id.txtTag);
         if (nota.getTag() != null) {
             txtTag.setVisibility(View.VISIBLE);
-            txtTag.setText(nota.getTag());
+            txtTag.setText(nota.getTag().toUpperCase().trim());
         } else {
             txtTag.setVisibility(View.GONE);
         }

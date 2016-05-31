@@ -18,12 +18,16 @@ import com.couchbase.lite.android.AndroidContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import it.tsamstudio.noteme.utils.NoteMeApp;
 
 /**
  * Created by damiano on 11/05/16.
@@ -144,6 +148,40 @@ public class CouchbaseDB {
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * Restituisce una lista di File coinvolti nella Nota richiesta
+     *
+     * @param id GUID della nota da trovare
+     * @throws IOException
+     */
+    public List<File> notaToFile(String id) throws IOException {
+        ArrayList<File> files = new ArrayList<>(1);
+
+        Nota nota = leggiNota(id);
+        if (nota == null)
+            return null;
+
+        File file = new File(
+                NoteMeApp.getInstance().getApplicationContext().getExternalFilesDir("jsonNotes")
+                        + id);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+
+        FileWriter fileWriter = new FileWriter(file);
+        ObjectMapper objectMapper = new ObjectMapper();
+        fileWriter.write(objectMapper.writeValueAsString(nota));
+        fileWriter.close();
+
+        files.add(file);
+        if (nota.getAudio() != null && !nota.getAudio().trim().equals(""))
+            files.add(new File(nota.getAudio()));
+        if (nota.getImage() != null && !nota.getImage().trim().equals(""))
+            files.add(new File(nota.getImage()));
+
+        return files;
     }
 
     /**
