@@ -9,6 +9,18 @@ import it.tsamstudio.noteme.Nota;
  */
 public class S3Manager {
 
+    /**
+     * Interfaccia che penso useremo per tornare indietro lo stato del trasferimento,
+     * che ovviamente sarà asincrono.
+     * TODO pensare bene come implementarla
+     */
+    public interface OnTransferListener {
+        void onStart();
+        void onProgressChanged();
+        void onFinish();
+        void onFailure();
+    }
+
     private static final String BUCKET_DIR = "tsac-its/noteme";
 
     private static S3Manager instance;
