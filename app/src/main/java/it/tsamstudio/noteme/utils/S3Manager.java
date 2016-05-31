@@ -182,6 +182,8 @@ public class S3Manager {
                             // ho finito lo scaricamento delle note
                             // posso scaricarmi i file multimediali
                             Log.d(TAG, "call: ");
+                            List<Nota> notesList = (ArrayList<Nota>) args[0];
+                            // TODO recupero file multimediali da path della nota
                         }
                     };
 
@@ -232,8 +234,10 @@ public class S3Manager {
                                                             try {
                                                                 // la aggiungo in lista
                                                                 notesList.add((new ObjectMapper()).readValue(decryptedNote, Nota.class));
+                                                                // quando il numero di note salvate
+                                                                // è pari al numero di note in remoto
                                                                 if (notesList.size() == notesKeys.size()) {
-                                                                    // callback per notificare la fine dello scaricamento delle note
+                                                                    // notifico la fine dello scaricamento delle note
                                                                     scaricamentoNoteFinito.call(notesList);
                                                                 }
                                                             } catch (IOException e) {
