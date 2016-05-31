@@ -76,9 +76,8 @@ public class S3Manager {
         }
         final OnTransferListener listener = transferListener;
 
-        CouchbaseDB couchbaseDB = new CouchbaseDB(NoteMeApp.getInstance().getApplicationContext());
         List<File> noteFiles;
-        noteFiles = couchbaseDB.getNoteFiles(nota.getID());
+        noteFiles = CouchbaseDB.getInstance().getNoteFiles(nota.getID());
 
         for (File file : noteFiles) {
             transferUtility.upload(BUCKET_NAME, BUCKET_DIR + file.getName(), file)
