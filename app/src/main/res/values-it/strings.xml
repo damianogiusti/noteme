@@ -25,4 +25,7 @@
     <string name="note_scadute_eliminate">Note scadute eliminate.</string>
     <string name="action_search">Cerca</string>
     <string name="share">Condividi</string>
+    <string name="form_username">Username</string>
+    <string name="form_password">Password</string>
+    <string name="form_login">Login</string>
 </resources>

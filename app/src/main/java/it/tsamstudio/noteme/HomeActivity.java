@@ -273,7 +273,8 @@ public class HomeActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_login) {
-            // TODO login
+            Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_settings) {
             // TODO impostazioni
         }

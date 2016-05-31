@@ -27,4 +27,7 @@
     <string name="note_scadute_eliminate">Expired notes deleted.</string>
     <string name="action_search">Search</string>
     <string name="share">Share</string>
+    <string name="form_username">Username</string>
+    <string name="form_password">Password</string>
+    <string name="form_login">Login</string>
 </resources>
