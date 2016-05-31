@@ -433,6 +433,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         String titoloTemp = titolo.getText().toString().trim();
         String testoTemp = etxtNota.getText().toString().trim();
         String tagTemp = tag.getText().toString().trim();
+        tagTemp = tagTemp.equals("") ? null : tagTemp;
         Log.d(TAG, String.format("saveNote: %s, %s, %s", titoloTemp, testoTemp, tagTemp));
 
         if (titoloTemp.length() > 0 || testoTemp.length() > 0 ||
@@ -454,7 +455,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             nota.setTitle(titoloNota);
             nota.setText(testoTemp);
             nota.setColor(noteColor);
-            nota.setTag(tagTemp.toUpperCase().trim());
+            nota.setTag(tagTemp);
             nota.setCreationDate(new Date());
             nota.setLastModifiedDate(new Date());
             nota.setExpireDate(expirationDate);

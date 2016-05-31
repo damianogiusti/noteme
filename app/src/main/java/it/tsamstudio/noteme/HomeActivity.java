@@ -9,10 +9,12 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -20,7 +22,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.SearchView;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.github.brnunes.swipeablerecyclerview.SwipeableRecyclerViewTouchListener;
@@ -85,54 +86,6 @@ public class HomeActivity extends AppCompatActivity
                 }
             });
         }
-
-        // cerca
-        searchView = (SearchView) findViewById(R.id.sv);
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            //ricerca quando il testo nella searchview cambia
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                if (fab.isShown())
-                    fab.setVisibility(View.GONE);
-
-                newText = newText.toLowerCase().trim();
-
-                searchList = new ArrayList<>();
-                searchAdapter = new NotesRecyclerViewAdapter(searchList);
-                recyclerView.swapAdapter(searchAdapter, false);
-                for (Nota x : notesList) {
-                    if (x.getText().toLowerCase().contains(newText) ||
-                            x.getTitle().toLowerCase().contains(newText) ||
-                            x.getTag().toLowerCase().contains(newText)) {
-                        searchList.add(x);
-                    }
-                }
-                if (!searchList.isEmpty()) {
-                    searchAdapter.notifyDataSetChanged();
-                }
-                return true;
-            }
-        });
-
-        int searchCloseButtonId = searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null);
-        closeSearch = (ImageView) this.searchView.findViewById(searchCloseButtonId);
-        closeSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchView.setQuery("", false);
-                searchView.setIconified(true);
-//                searchList.clear();
-                recyclerView.swapAdapter(mAdapter, false);
-                searchAdapter = null;
-                searchList = null;
-                fab.setVisibility(View.VISIBLE);
-            }
-        });
 
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -293,6 +246,7 @@ public class HomeActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.home, menu);
+        setupSearchBar(menu);
         return true;
     }
 
@@ -451,5 +405,83 @@ public class HomeActivity extends AppCompatActivity
             }
             Log.d(TAG, "onNotaModificata: ");
         }
+    }
+
+    private void setupSearchBar(Menu menu) {
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            //ricerca quando il testo nella searchview cambia
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (fab.isShown())
+                    fab.setVisibility(View.GONE);
+
+                newText = newText.toLowerCase().trim();
+
+                searchList = new ArrayList<>();
+                searchAdapter = new NotesRecyclerViewAdapter(searchList);
+                recyclerView.swapAdapter(searchAdapter, false);
+                for (Nota x : notesList) {
+                    if (x.getText().toLowerCase().contains(newText) ||
+                            x.getTitle().toLowerCase().contains(newText) ||
+                            (x.getTag() != null && x.getTag().toLowerCase().contains(newText))) {
+                        searchList.add(x);
+                    }
+                }
+                if (!searchList.isEmpty()) {
+                    searchAdapter.notifyDataSetChanged();
+                }
+                return true;
+            }
+        });
+
+        // Define the listener
+        MenuItemCompat.OnActionExpandListener expandListener = new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                searchView.setQuery("", false);
+                searchView.setIconified(true);
+//                searchList.clear();
+                recyclerView.swapAdapter(mAdapter, false);
+                searchAdapter = null;
+                searchList = null;
+                fab.setVisibility(View.VISIBLE);
+                return true;  // Return true to collapse action view
+            }
+
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                if (fab.isShown())
+                    fab.setVisibility(View.GONE);
+                return true;  // Return true to expand action view
+            }
+        };
+
+
+        // Assign the listener to that action item
+        MenuItemCompat.setOnActionExpandListener(searchItem, expandListener);
+
+
+//        int searchCloseButtonId = searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null);
+//        closeSearch = (ImageView) this.searchView.findViewById(searchCloseButtonId);
+//        closeSearch.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                searchView.setQuery("", false);
+//                searchView.setIconified(true);
+////                searchList.clear();
+//                recyclerView.swapAdapter(mAdapter, false);
+//                searchAdapter = null;
+//                searchList = null;
+//                fab.setVisibility(View.VISIBLE);
+//            }
+//        });
     }
 }

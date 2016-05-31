@@ -19,10 +19,14 @@
             android:background="?attr/colorPrimary"
             android:gravity="end"
             app:popupTheme="@style/AppTheme.PopupOverlay">
-
-            <SearchView android:id="@+id/sv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            <!--<item android:id="@+id/action_search"-->
+                <!--android:title="@string/action_search"-->
+                <!--android:icon="@drawable/ic_search"-->
+                <!--app:showAsAction="ifRoom|collapseActionView"-->
+                <!--app:actionViewClass="android.support.v7.widget.SearchView" />-->
+            <!--<SearchView android:id="@+id/sv"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content" />-->
 
         </android.support.v7.widget.Toolbar>
     </android.support.design.widget.AppBarLayout>
