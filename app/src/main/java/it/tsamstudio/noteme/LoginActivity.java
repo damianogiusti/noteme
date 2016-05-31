@@ -51,6 +51,11 @@ public class LoginActivity extends AppCompatActivity {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        try {
+                            CouchbaseDB.getInstance().eliminaUtente();
+                        } catch (CouchbaseLiteException e) {
+                            e.printStackTrace();
+                        }
                     } else {
                         if (NoteMeUtils.isBlank(username)) {
                             txtUsername.requestFocus();
