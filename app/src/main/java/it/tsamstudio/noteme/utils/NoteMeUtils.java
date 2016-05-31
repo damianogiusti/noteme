@@ -40,6 +40,9 @@ public class NoteMeUtils {
 
     private static final String TAG = "NoteMeUtils";
 
+    public static final String AES_KEY = "TsAmStUdIo2KI6projectwork";
+    public static final String AES_PASSWORD_KEY = "TsAmStUdIo2KI6projectworkpA$$w0Rd_LOL";
+
     public static final int MY_PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
     public static final int MY_PERMISSIONS_REQUEST_STORAGE = 2;
 

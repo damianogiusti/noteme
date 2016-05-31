@@ -43,51 +43,7 @@ public class LoginActivity extends AppCompatActivity {
                     String password = txtPassword.getText().toString().trim();
                     if (validaUtente(username, password)) {
                         User.getInstance().initWithCredentials(username, password);
-
-                        CouchbaseDB couchbaseDB = new CouchbaseDB(getApplicationContext());
-                        Nota nota = null;
-                        try {
-                            nota = couchbaseDB.leggiNote().get(0);
-                        } catch (CouchbaseLiteException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                            S3Manager.getInstance().uploadNote(nota, new S3Manager.OnTransferListener() {
-                                @Override
-                                public void onStart() {
-                                    Log.d(TAG, "onStart: upload started");
-                                }
-
-                                @Override
-                                public void onProgressChanged(long bytesCurrent, long totalBytes) {
-                                    Log.d(TAG, "onProgressChanged: " + String.format("%s/%s", ""+bytesCurrent, ""+totalBytes));
-                                }
-
-                                @Override
-                                public void onWaitingForNetwork() {
-
-                                }
-
-                                @Override
-                                public void onFinish() {
-                                    Log.d(TAG, "onFinish: finito");
-                                }
-
-                                @Override
-                                public void onFailure() {
-
-                                }
-
-                                @Override
-                                public void onError(Exception e) {
-                                    e.printStackTrace();
-                                }
-                            });
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        
                     } else {
                         if (NoteMeUtils.isBlank(username)) {
                             txtUsername.requestFocus();

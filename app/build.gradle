@@ -50,4 +50,6 @@ dependencies {
     compile 'com.amazonaws:aws-android-sdk-core:2.+'
     compile 'com.amazonaws:aws-android-sdk-cognito:2.+'
     compile 'com.amazonaws:aws-android-sdk-s3:2.+'
+    // encryption
+    compile 'com.scottyab:aescrypt:0.0.1'
 }

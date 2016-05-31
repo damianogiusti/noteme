@@ -54,7 +54,6 @@ public class HomeActivity extends AppCompatActivity
     private NuovaNotaFragment nuovaNotaFragment;
     private MostraNotaFragment fragmentMostraNota;
 
-    private CouchbaseDB database;
     ArrayList<Nota> notesList, searchList;
 
     private SearchView searchView;
@@ -107,10 +106,9 @@ public class HomeActivity extends AppCompatActivity
         mLayoutManager = new StaggeredGridLayoutManager(colonne, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(mLayoutManager);
 
-        database = new CouchbaseDB(getApplicationContext());
         if (notesList == null) {
             try {
-                notesList = database.leggiNote();
+                notesList = CouchbaseDB.getInstance().leggiNote();
             } catch (CouchbaseLiteException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -210,7 +208,7 @@ public class HomeActivity extends AppCompatActivity
                 for (Nota n : noteEliminate) {
                     try {
                         if (n != null) {
-                            database.eliminaNota(n);
+                            CouchbaseDB.getInstance().eliminaNota(n);
                         }
                     } catch (CouchbaseLiteException e) {
                         e.printStackTrace();
@@ -393,7 +391,7 @@ public class HomeActivity extends AppCompatActivity
                 if (position > -1) {
                     notesList.set(position, nota);
                 } else {
-                    notesList = database.leggiNote();
+                    notesList = CouchbaseDB.getInstance().leggiNote();
                 }
             } catch (CouchbaseLiteException e) {
                 e.printStackTrace();

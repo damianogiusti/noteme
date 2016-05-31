@@ -440,12 +440,12 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                 (audioOutputPath != null && audioOutputPath.trim().length() > 0) ||
                 (imageOutputPath != null && imageOutputPath.trim().length() > 0)) {   //se c'è almeno uno dei parametri
 
-            CouchbaseDB db = new CouchbaseDB(getContext());
+
             Nota nota;
             if (guid == null) {
                 nota = new Nota();
             } else {
-                nota = db.leggiNota(guid);
+                nota = CouchbaseDB.getInstance().leggiNota(guid);
             }
             if (nota == null) {
                 nota = new Nota();
@@ -463,7 +463,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
             nota.setImage(imageOutputPath);
 
             try {
-                db.salvaNota(nota);
+                CouchbaseDB.getInstance().salvaNota(nota);
                 Log.d(TAG, "saveNote: nota salvata");
             } catch (IOException e) {
                 e.printStackTrace();

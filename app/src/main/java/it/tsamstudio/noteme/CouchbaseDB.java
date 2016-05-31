@@ -16,10 +16,12 @@ import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.View;
 import com.couchbase.lite.android.AndroidContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scottyab.aescrypt.AESCrypt;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,23 +30,35 @@ import java.util.List;
 import java.util.Map;
 
 import it.tsamstudio.noteme.utils.NoteMeApp;
+import it.tsamstudio.noteme.utils.NoteMeUtils;
 
 /**
  * Created by damiano on 11/05/16.
  */
 public class CouchbaseDB {
+
+    private static CouchbaseDB instance;
+
+    public static CouchbaseDB getInstance() {
+        if (instance == null) {
+            instance = new CouchbaseDB();
+        }
+        return instance;
+    }
+
     private static final String TAG = "CouchbaseDB";
     private static final String TYPE_KEY = "type";
     private static final String DB_NAME = "noteme";
 
     private static final String VIEW_NOTE = "viewNote";
+    private static final String VIEW_USER = "viewUser";
 
     private Manager man;
     private Database db;
     private Context ctx;
 
-    public CouchbaseDB(Context c) {
-        ctx = c;
+    private CouchbaseDB() {
+        ctx = NoteMeApp.getInstance().getApplicationContext();
         createManager();
         createViewForNota();
     }
@@ -87,6 +101,19 @@ public class CouchbaseDB {
                 if (document.containsKey(TYPE_KEY) &&
                         document.get(TYPE_KEY).equals(Nota.class.getName())) {
                     emitter.emit(Nota.class.getName(), document.get(Nota.class.getName()));
+                }
+            }
+        }, "1");
+    }
+
+    private void createViewForUser() {
+        View view = db.getView(VIEW_USER);
+        view.setMap(new Mapper() {
+            @Override
+            public void map(Map<String, Object> document, Emitter emitter) {
+                if (document.containsKey(TYPE_KEY) &&
+                        document.get(TYPE_KEY).equals(User.class.getName())) {
+                    emitter.emit(User.class.getName(), document.get(User.class.getName()));
                 }
             }
         }, "1");
@@ -246,5 +273,52 @@ public class CouchbaseDB {
             }
             document.delete();
         }
+    }
+
+    public void salvaUtente() throws IOException, CouchbaseLiteException {
+        Document document = db.getDocument(User.class.getName());
+        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> documentProperties = document.getProperties();
+
+        if (documentProperties != null)
+            properties.putAll(documentProperties);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonObject = objectMapper.writeValueAsString(User.getInstance());
+        try {
+            jsonObject = AESCrypt.encrypt(NoteMeUtils.AES_KEY, jsonObject);
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        }
+        properties.put(User.class.getName(), jsonObject);            // metto nelle properties una stringa json
+
+        document.putProperties(properties);
+    }
+
+    public void leggiUtente() throws IOException {
+        Document document = db.getExistingDocument(User.class.getName());
+        if (document != null) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String encryptedUser = document.getProperty(User.class.getName()).toString();
+            String decryptedUser = null;
+            try {
+                decryptedUser = AESCrypt.decrypt(NoteMeUtils.AES_KEY, encryptedUser);
+            } catch (GeneralSecurityException e) {
+                e.printStackTrace();
+            }
+            if (decryptedUser == null) {
+                throw new IllegalStateException("Unable to decrypt user.");
+            }
+
+            User user = objectMapper.readValue(decryptedUser, User.class);
+            User.getInstance().initWithCredentials(user.getUsername(), user.getPassword());
+        } else {
+            User.destroySharedInstance();
+        }
+    }
+
+    public void eliminaUtente() throws CouchbaseLiteException {
+        db.deleteLocalDocument(User.class.getName());
+        User.destroySharedInstance();
     }
 }
