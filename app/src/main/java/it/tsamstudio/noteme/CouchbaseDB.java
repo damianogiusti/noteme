@@ -177,7 +177,7 @@ public class CouchbaseDB {
 
         File file = new File(
                 NoteMeApp.getInstance().getApplicationContext().getExternalFilesDir("jsonNotes")
-                        + id);
+                        + "/" + id);
         if (!file.exists()) {
             file.createNewFile();
         }

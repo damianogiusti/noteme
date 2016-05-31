@@ -3,13 +3,21 @@ package it.tsamstudio.noteme;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.couchbase.lite.CouchbaseLiteException;
+
+import java.io.IOException;
+
 import it.tsamstudio.noteme.utils.NoteMeUtils;
+import it.tsamstudio.noteme.utils.S3Manager;
 
 public class LoginActivity extends AppCompatActivity {
+
+    private static final String TAG = "LoginActivity";
 
     private TextView txtUsername;
     private TextView txtPassword;
@@ -26,7 +34,7 @@ public class LoginActivity extends AppCompatActivity {
         txtUsername = (TextView) findViewById(R.id.txtUsername);
         txtPassword = (TextView) findViewById(R.id.txtPassword);
 
-        Button btnLogin = (Button) findViewById(R.id.btnLogin);
+        final Button btnLogin = (Button) findViewById(R.id.btnLogin);
         if (btnLogin != null) {
             btnLogin.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -35,6 +43,51 @@ public class LoginActivity extends AppCompatActivity {
                     String password = txtPassword.getText().toString().trim();
                     if (validaUtente(username, password)) {
                         User.getInstance().initWithCredentials(username, password);
+
+                        CouchbaseDB couchbaseDB = new CouchbaseDB(getApplicationContext());
+                        Nota nota = null;
+                        try {
+                            nota = couchbaseDB.leggiNote().get(0);
+                        } catch (CouchbaseLiteException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            S3Manager.getInstance().uploadNote(nota, new S3Manager.OnTransferListener() {
+                                @Override
+                                public void onStart() {
+                                    Log.d(TAG, "onStart: upload started");
+                                }
+
+                                @Override
+                                public void onProgressChanged(long bytesCurrent, long totalBytes) {
+                                    Log.d(TAG, "onProgressChanged: " + String.format("%s/%s", ""+bytesCurrent, ""+totalBytes));
+                                }
+
+                                @Override
+                                public void onWaitingForNetwork() {
+
+                                }
+
+                                @Override
+                                public void onFinish() {
+                                    Log.d(TAG, "onFinish: finito");
+                                }
+
+                                @Override
+                                public void onFailure() {
+
+                                }
+
+                                @Override
+                                public void onError(Exception e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     } else {
                         if (NoteMeUtils.isBlank(username)) {
                             txtUsername.requestFocus();
