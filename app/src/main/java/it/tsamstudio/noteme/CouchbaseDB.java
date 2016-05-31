@@ -148,7 +148,13 @@ public class CouchbaseDB {
         if (documentProperties != null)
             properties.putAll(documentProperties);
 
-        properties.put(Nota.class.getName(), jsonObject);            // metto nelle properties una stringa json
+        String encryptedNote = null;
+        try {
+            encryptedNote = AESCrypt.encrypt(NoteMeUtils.AES_KEY, jsonObject);
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException("Unable to encrypt note. " + e.getMessage());
+        }
+        properties.put(Nota.class.getName(), encryptedNote);            // metto nelle properties una stringa json
 
         properties.put(TYPE_KEY, Nota.class.getName());
         document.putProperties(properties);
@@ -182,10 +188,13 @@ public class CouchbaseDB {
         }
         String jsonNota = (String) document.getProperty(Nota.class.getName());
         try {
-            return (new ObjectMapper().readValue(jsonNota, Nota.class));
+            String decryptedNote = AESCrypt.decrypt(NoteMeUtils.AES_KEY, jsonNota);
+            return (new ObjectMapper().readValue(decryptedNote, Nota.class));
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException("Unable to decrypt note. " + e.getMessage());
         }
     }
 
@@ -204,14 +213,21 @@ public class CouchbaseDB {
 
         File file = new File(
                 NoteMeApp.getInstance().getApplicationContext().getExternalFilesDir("jsonNotes")
-                        + "/" + id);
+                        + "/" + id + ".note");
         if (!file.exists()) {
             file.createNewFile();
         }
 
         FileWriter fileWriter = new FileWriter(file);
         ObjectMapper objectMapper = new ObjectMapper();
-        fileWriter.write(objectMapper.writeValueAsString(nota));
+        String plainJsonNote = objectMapper.writeValueAsString(nota);
+        String encryptedNote = "";
+        try {
+            encryptedNote = AESCrypt.encrypt(NoteMeUtils.AES_KEY, plainJsonNote);
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        }
+        fileWriter.write(encryptedNote);
         fileWriter.close();
 
         files.add(file);
@@ -239,7 +255,14 @@ public class CouchbaseDB {
         ArrayList<Nota> note = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
         for (QueryRow row : rows) {
-            note.add(objectMapper.readValue(((String) row.getValue()), Nota.class));
+            String encryptedNote = (String) row.getValue();
+            String decryptedNote;
+            try {
+                decryptedNote = AESCrypt.decrypt(NoteMeUtils.AES_KEY, encryptedNote);
+            } catch (GeneralSecurityException e) {
+                throw new RuntimeException("Unable to decrypt note. " + e.getMessage());
+            }
+            note.add(objectMapper.readValue(decryptedNote, Nota.class));
         }
         Log.d(TAG, String.format("note lette in %s ms", System.currentTimeMillis() - time));
         Collections.sort(note, new Comparator<Nota>() {
@@ -259,7 +282,14 @@ public class CouchbaseDB {
         Document document = db.getExistingDocument(guid);
         if (document != null) {
             try {
-                Nota nota = (new ObjectMapper()).readValue((String) document.getProperty(Nota.class.getName()), Nota.class);
+                String encryptedNote = (String) document.getProperty(Nota.class.getName());
+                String decryptedNote;
+                try {
+                    decryptedNote = AESCrypt.decrypt(NoteMeUtils.AES_KEY, encryptedNote);
+                } catch (GeneralSecurityException e) {
+                    throw new RuntimeException("Unable to decrypt note. " + e.getMessage());
+                }
+                Nota nota = (new ObjectMapper()).readValue(decryptedNote, Nota.class);
                 if (nota.getAudio() != null) {
                     File fileAudio = new File(nota.getAudio());
                     fileAudio.delete();
@@ -300,14 +330,11 @@ public class CouchbaseDB {
         if (document != null) {
             ObjectMapper objectMapper = new ObjectMapper();
             String encryptedUser = document.getProperty(User.class.getName()).toString();
-            String decryptedUser = null;
+            String decryptedUser;
             try {
                 decryptedUser = AESCrypt.decrypt(NoteMeUtils.AES_KEY, encryptedUser);
             } catch (GeneralSecurityException e) {
-                e.printStackTrace();
-            }
-            if (decryptedUser == null) {
-                throw new IllegalStateException("Unable to decrypt user.");
+                throw new IllegalStateException("Unable to decrypt user. " + e.getMessage());
             }
 
             User user = objectMapper.readValue(decryptedUser, User.class);
