@@ -39,23 +39,7 @@ public class LoginActivity extends AppCompatActivity {
                     String password = txtPassword.getText().toString().trim();
                     if (validaUtente(username, password)) {
                         User.getInstance().initWithCredentials(username, password);
-                        try {
-                            CouchbaseDB.getInstance().salvaUtente();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (CouchbaseLiteException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                            CouchbaseDB.getInstance().leggiUtente();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                            CouchbaseDB.getInstance().eliminaUtente();
-                        } catch (CouchbaseLiteException e) {
-                            e.printStackTrace();
-                        }
+                        
                     } else {
                         if (NoteMeUtils.isBlank(username)) {
                             txtUsername.requestFocus();
