@@ -156,7 +156,7 @@ public class CouchbaseDB {
      * @param id GUID della nota da trovare
      * @throws IOException
      */
-    public List<File> notaToFile(String id) throws IOException {
+    public List<File> getNoteFiles(String id) throws IOException {
         ArrayList<File> files = new ArrayList<>(1);
 
         Nota nota = leggiNota(id);
