@@ -7,6 +7,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.couchbase.lite.CouchbaseLiteException;
+
+import java.io.IOException;
+
 import it.tsamstudio.noteme.utils.NoteMeUtils;
 
 public class LoginActivity extends AppCompatActivity {
@@ -35,6 +39,18 @@ public class LoginActivity extends AppCompatActivity {
                     String password = txtPassword.getText().toString().trim();
                     if (validaUtente(username, password)) {
                         User.getInstance().initWithCredentials(username, password);
+                        try {
+                            CouchbaseDB.getInstance().salvaUtente();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (CouchbaseLiteException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            CouchbaseDB.getInstance().leggiUtente();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     } else {
                         if (NoteMeUtils.isBlank(username)) {
                             txtUsername.requestFocus();

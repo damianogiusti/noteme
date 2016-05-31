@@ -22,6 +22,10 @@ public class User {
         this.password = password;
     }
 
+    public static void destroySharedInstance() {
+        userInstance = null;
+    }
+
     public String getUsername() {
         return username;
     }

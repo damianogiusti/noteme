@@ -46,7 +46,6 @@ public class MostraNotaFragment extends DialogFragment {
     private View dialogNoteView;
     private EditText txtTitle, txtContent;
     private Nota nota;
-    private CouchbaseDB database;
 
     // player audio
     private ImageButton btnPlayPause;
@@ -94,7 +93,6 @@ public class MostraNotaFragment extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        database = new CouchbaseDB(getActivity().getApplicationContext());
         getDialog().setCanceledOnTouchOutside(false);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
@@ -250,7 +248,7 @@ public class MostraNotaFragment extends DialogFragment {
                     || (newTitle.length() == 0 && newText.length() > 0)) {
                 nota.setText(txtContent.getText().toString());
                 try {
-                    database.salvaNota(nota);
+                    CouchbaseDB.getInstance().salvaNota(nota);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (CouchbaseLiteException e) {
