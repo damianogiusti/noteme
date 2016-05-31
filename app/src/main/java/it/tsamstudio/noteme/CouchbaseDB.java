@@ -100,16 +100,28 @@ public class CouchbaseDB {
      * @throws CouchbaseLiteException
      */
     public void salvaNota(Nota nota) throws IOException, CouchbaseLiteException {
-        Document document = db.getDocument(nota.getID());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String s = objectMapper.writeValueAsString(nota);
+        salvaNotaJson(nota.getID(), s);
+    }
+
+    /**
+     * Salva una singola nota passata in formato JSON, dato un GUID
+     *
+     * @param id         GUID della nota
+     * @param jsonObject oggetto json rappresentante la nota
+     * @throws IOException
+     * @throws CouchbaseLiteException
+     */
+    public void salvaNotaJson(String id, String jsonObject) throws IOException, CouchbaseLiteException {
+        Document document = db.getDocument(id);
         Map<String, Object> properties = new HashMap<>();
         Map<String, Object> documentProperties = document.getProperties();
 
         if (documentProperties != null)
             properties.putAll(documentProperties);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String s = objectMapper.writeValueAsString(nota);
-        properties.put(Nota.class.getName(), s);            // metto nelle properties una stringa json
+        properties.put(Nota.class.getName(), jsonObject);            // metto nelle properties una stringa json
 
         properties.put(TYPE_KEY, Nota.class.getName());
         document.putProperties(properties);
