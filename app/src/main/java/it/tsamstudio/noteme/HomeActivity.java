@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import it.tsamstudio.noteme.utils.NoteMeUtils;
+import it.tsamstudio.noteme.utils.S3Manager;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -209,6 +210,12 @@ public class HomeActivity extends AppCompatActivity
                     try {
                         if (n != null) {
                             CouchbaseDB.getInstance().eliminaNota(n);
+                            S3Manager.getInstance().deleteNoteFromRemote(n, new S3Manager.DeletionListener() {
+                                @Override
+                                public void onDeleted(Nota nota) {
+                                    Log.d(TAG, "onDeleted: nota (" + nota.getID() + ") cancellata");
+                                }
+                            });
                         }
                     } catch (CouchbaseLiteException e) {
                         e.printStackTrace();
