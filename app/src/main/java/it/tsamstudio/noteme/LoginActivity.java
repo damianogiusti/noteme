@@ -7,12 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.couchbase.lite.CouchbaseLiteException;
-
-import java.io.IOException;
-
 import it.tsamstudio.noteme.utils.NoteMeUtils;
-import it.tsamstudio.noteme.utils.S3Manager;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -51,7 +46,8 @@ public class LoginActivity extends AppCompatActivity {
 //                        } catch (IOException e) {
 //                            e.printStackTrace();
 //                        }
-                        S3Manager.getInstance().downloadAllNotes(null);
+//                        S3Manager.getInstance().downloadAllNotes(null);
+
                     } else {
                         if (NoteMeUtils.isBlank(username)) {
                             txtUsername.requestFocus();

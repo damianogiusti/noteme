@@ -1,7 +1,6 @@
 package it.tsamstudio.noteme.utils;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
@@ -12,6 +11,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.couchbase.lite.CouchbaseLiteException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scottyab.aescrypt.AESCrypt;
 
@@ -98,7 +98,8 @@ public class S3Manager {
 
         for (File file : noteFiles) {
             String bucketDir = BUCKET_NOTES_DIR;
-            if (file.getName().endsWith(".jpeg")) {
+            if (file.getName().toLowerCase().endsWith(".jpg")
+                    || file.getName().toLowerCase().endsWith(".jpeg")) {
                 bucketDir = BUCKET_IMAGES_DIR;
             } else if (file.getName().endsWith(".3gp")) {
                 bucketDir = BUCKET_AUDIO_DIR;
@@ -181,9 +182,14 @@ public class S3Manager {
                         public void call(Object... args) {
                             // ho finito lo scaricamento delle note
                             // posso scaricarmi i file multimediali
-                            Log.d(TAG, "call: ");
-                            List<Nota> notesList = (ArrayList<Nota>) args[0];
-                            // TODO recupero file multimediali da path della nota
+                            ArrayList<Nota> notesList = (ArrayList<Nota>) args[0];
+                            try {
+                                CouchbaseDB.getInstance().salvaNote(notesList);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (CouchbaseLiteException e) {
+                                e.printStackTrace();
+                            }
                             for (Nota nota : notesList) {
                                 if (nota.getAudio() != null) {
                                     File localFile = new File(nota.getAudio());
