@@ -34,12 +34,15 @@ public class S3Manager {
 
     private static final String TAG = "S3Manager";
 
+    public static final int TRANSFER_UPLOAD = 1;
+    public static final int TRANSFER_DOWNLOAD = 2;
+
     /**
      * Interfaccia che penso useremo per tornare indietro lo stato del trasferimento,
      * che ovviamente sarà asincrono.
      * TODO pensare bene come implementarla
      */
-    public interface OnTransferListener {
+    public interface OnSingleTransferListener {
         void onStart(int transferID);
 
         void onProgressChanged(int transferID, long bytesCurrent, long totalBytes);
@@ -51,6 +54,24 @@ public class S3Manager {
         void onFailure(int transferID);
 
         void onError(int transferID, Exception e);
+    }
+
+    public interface OnMultipleTransferListener {
+        void onFileTransferred(File file, int transferType);
+
+        void onFileTransferFailed(File file, int transferType, Exception e);
+
+        void onFilesProgressChanged(int currentFile, int totalFiles, int transferType);
+
+        void onSingleFileProgressChanged(File file, long currentBytes, long totalBytes, int transferType);
+
+        void onFinish(int transferType);
+    }
+
+    public interface SyncListener {
+        //        void onLocalToRemoteSyncCompleted();
+//        void onRemoteToLocalSyncCompleted();
+        void onSyncFinished();
     }
 
     private static final String BUCKET_NAME = "tsac-its";
@@ -70,6 +91,8 @@ public class S3Manager {
 
     private AmazonS3 amazonS3;
     private TransferUtility transferUtility;
+    private boolean upSyncCompleted = true;
+    private boolean downSyncCompleted = true;
 
     private S3Manager() {
         amazonS3 = new AmazonS3Client(new CognitoCachingCredentialsProvider(
@@ -86,17 +109,23 @@ public class S3Manager {
      *
      * @param nota Nota da caricare
      */
-    public void uploadNota(Nota nota, OnTransferListener transferListener) throws IOException {
-        if (transferListener == null) {
-            // dummy init
-            transferListener = dummyInitForListener();
+    public void uploadNota(Nota nota,
+                           OnMultipleTransferListener multipleTransferListener)
+            throws IOException {
+
+        if (multipleTransferListener == null) {
+            multipleTransferListener = dummyInitForMultipleTransferListener();
         }
-        final OnTransferListener listener = transferListener;
+        final OnMultipleTransferListener onMultipleTransferListener = multipleTransferListener;
 
         List<File> noteFiles;
         noteFiles = CouchbaseDB.getInstance().getNoteFiles(nota.getID());
 
-        for (File file : noteFiles) {
+        final int totalFiles = noteFiles.size();
+        for (int i = 0; i < totalFiles; i++) {
+            final int currentIndex = i + 1;
+            final File file = noteFiles.get(i);
+
             String bucketDir = BUCKET_NOTES_DIR;
             if (file.getName().toLowerCase().endsWith(".jpg")
                     || file.getName().toLowerCase().endsWith(".jpeg")) {
@@ -104,46 +133,295 @@ public class S3Manager {
             } else if (file.getName().endsWith(".3gp")) {
                 bucketDir = BUCKET_AUDIO_DIR;
             }
+
             transferUtility.upload(BUCKET_NAME, bucketDir + file.getName(), file)
                     .setTransferListener(new TransferListener() {
                         @Override
                         public void onStateChanged(int id, TransferState state) {
                             if (state == TransferState.IN_PROGRESS) {
-                                listener.onStart(id);
+                                onMultipleTransferListener.onFilesProgressChanged(currentIndex, totalFiles, TRANSFER_UPLOAD);
                             } else if (state == TransferState.COMPLETED) {
-                                listener.onFinish(id);
+                                onMultipleTransferListener.onFileTransferred(file, TRANSFER_UPLOAD);
                             } else if (state == TransferState.FAILED) {
-                                listener.onFailure(id);
-                            } else if (state == TransferState.WAITING_FOR_NETWORK) {
-                                listener.onWaitingForNetwork(id);
+                                onMultipleTransferListener.onFileTransferFailed(file, TRANSFER_UPLOAD, null);
                             }
                         }
 
                         @Override
                         public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                            listener.onProgressChanged(id, bytesCurrent, bytesTotal);
+                            onMultipleTransferListener.onSingleFileProgressChanged(file, bytesCurrent, bytesTotal, TRANSFER_UPLOAD);
                         }
 
                         @Override
                         public void onError(int id, Exception ex) {
-                            listener.onError(id, ex);
+                            onMultipleTransferListener.onFileTransferFailed(file, TRANSFER_UPLOAD, ex);
                         }
                     });
         }
     }
 
     /**
-     * Metodo che scarica tutte le note dal server remoto.
+     * Metodo che scarica tutte le note dal server remoto e le memorizza nel database.
      *
      * @return Lista di note scaricate
      */
-    public List<Nota> downloadAllNotes(OnTransferListener transferListener) {
+    public void downloadAllNotes(OnMultipleTransferListener transferListener) {
 
         if (transferListener == null) {
-            transferListener = dummyInitForListener();
+            transferListener = dummyInitForMultipleTransferListener();
         }
-        final OnTransferListener listener = transferListener;
+        final OnMultipleTransferListener listener = transferListener;
 
+        getNotesList(listener, new Callback() {
+            @Override
+            public void call(Object... args) {
+                // ho finito lo scaricamento delle note
+                // posso scaricarmi i file multimediali
+                ArrayList<Nota> notesList = (ArrayList<Nota>) args[0];
+                try {
+                    CouchbaseDB.getInstance().salvaNote(notesList);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+                for (Nota nota : notesList) {
+                    if (nota.getAudio() != null) {
+                        final File localFile = new File(nota.getAudio());
+                        transferUtility.download(BUCKET_NAME, BUCKET_AUDIO_DIR + localFile.getName(), localFile)
+                                .setTransferListener(new TransferListener() {
+                                    @Override
+                                    public void onStateChanged(int id, TransferState state) {
+                                        if (state == TransferState.COMPLETED) {
+                                            listener.onFinish(TRANSFER_DOWNLOAD);
+                                        } else if (state == TransferState.WAITING_FOR_NETWORK) {
+//                                            listener.onWaitingForNetwork(id);
+                                        } else if (state == TransferState.FAILED) {
+                                            listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, null);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                                        listener.onSingleFileProgressChanged(localFile, bytesCurrent, bytesTotal, TRANSFER_DOWNLOAD);
+                                    }
+
+                                    @Override
+                                    public void onError(int id, Exception ex) {
+                                        listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, ex);
+                                    }
+                                });
+                    }
+                    if (nota.getImage() != null) {
+                        final File localFile = new File(nota.getImage());
+                        transferUtility.download(BUCKET_NAME, BUCKET_IMAGES_DIR + localFile.getName(), localFile)
+                                .setTransferListener(new TransferListener() {
+                                    @Override
+                                    public void onStateChanged(int id, TransferState state) {
+                                        if (state == TransferState.COMPLETED) {
+                                            listener.onFinish(id);
+                                        } else if (state == TransferState.WAITING_FOR_NETWORK) {
+
+                                        } else if (state == TransferState.FAILED) {
+                                            listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, null);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                                        listener.onSingleFileProgressChanged(localFile, bytesCurrent, bytesTotal, TRANSFER_DOWNLOAD);
+                                    }
+
+                                    @Override
+                                    public void onError(int id, Exception ex) {
+                                        listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, ex);
+                                    }
+                                });
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Metodo che sincronizza tutte le note locali con quelle in remoto, scaricando le note remote
+     * non presenti in locale, e caricando le note locali non presenti in remoto.
+     * Si appoggia al database locale.
+     */
+    public void sync(SyncListener syncListener, OnMultipleTransferListener multipleTransferListener) {
+        if (syncListener == null) {
+            syncListener = dummyInitForSyncListener();
+        }
+        if (multipleTransferListener == null) {
+            multipleTransferListener = dummyInitForMultipleTransferListener();
+        }
+        final SyncListener listener = syncListener;
+        final OnMultipleTransferListener onMultipleTransferListener = multipleTransferListener;
+
+        getNotesList(onMultipleTransferListener, new Callback() {
+            @Override
+            public void call(Object... args) {
+                ArrayList<Nota> remoteNoteList = (ArrayList<Nota>) args[0];
+
+                upSyncCompleted = false;
+                syncLocalWithRemote(remoteNoteList,
+                        onMultipleTransferListener,
+                        new Callback() {
+                            @Override
+                            public void call(Object... args) {
+                                upSyncCompleted = true;
+                                if (!isSyncing()) {
+                                    // questo viene chiamato una volta sola perchè
+                                    // non finiranno mai nello stesso tempo
+                                    listener.onSyncFinished();
+                                }
+                            }
+                        });
+                downSyncCompleted = false;
+                syncRemoteWithLocal(remoteNoteList,
+                        onMultipleTransferListener,
+                        new Callback() {
+                            @Override
+                            public void call(Object... args) {
+                                downSyncCompleted = true;
+                                if (!isSyncing()) {
+                                    // questo sarà chiamato una volta sola perchè
+                                    // non finiranno mai nello stesso tempo
+                                    listener.onSyncFinished();
+                                }
+                            }
+                        });
+            }
+        });
+
+    }
+
+    /**
+     * Metodo che sincronizza tutte le note locali con quelle in remoto, scaricando le note remote
+     * non presenti in locale, e caricando le note locali non presenti in remoto.<br/><br/>
+     * <b>NON TIENE TRACCIA DI EVENTUALI ERRORI SUI FILE.</b><br/><br/>
+     * Si appoggia al database locale.
+     */
+    public void sync(SyncListener syncListener) {
+        sync(syncListener, null);
+    }
+
+    /**
+     * Metodo privato per pulizia del codice, che sincronizza le note locali con le note remote.
+     *
+     * @param remoteNotesList lista delle note remote, passata per ottimizzare le operazioni
+     * @param listener        listener per il trasferimento multiplo di file
+     * @param onFinish        callback che stabilisce la fine del processo
+     */
+    private void syncLocalWithRemote(final ArrayList<Nota> remoteNotesList,
+                                     final OnMultipleTransferListener listener,
+                                     final Callback onFinish) {
+        new AsyncTask<Void, Void, Void>() {
+
+            ArrayList<Nota> uploadPool;
+            ArrayList<Nota> localNotesList;
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                uploadPool = new ArrayList<>();
+                try {
+                    localNotesList = CouchbaseDB.getInstance().leggiNote();
+                } catch (Exception e) {
+                    throw new RuntimeException("Unable to read notes from database. " + e.getMessage());
+                }
+                // aggiungo le note locali da caricare al pool
+                for (Nota localNote : localNotesList) {
+                    if (!remoteNotesList.contains(localNote)) {
+                        uploadPool.add(localNote);
+                    }
+                }
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                for (Nota nota : uploadPool) {
+                    try {
+                        uploadNota(nota,
+                                new OnMultipleTransferListener() {
+                                    @Override
+                                    public void onFileTransferred(File file, int transferType) {
+                                        listener.onFileTransferred(file, transferType);
+                                    }
+
+                                    @Override
+                                    public void onSingleFileProgressChanged(File file, long currentBytes, long totalBytes, int transferType) {
+                                        listener.onSingleFileProgressChanged(file, currentBytes, totalBytes, transferType);
+                                    }
+
+                                    @Override
+                                    public void onFileTransferFailed(File file, int transferType, Exception e) {
+                                        listener.onFileTransferFailed(file, transferType, e);
+                                    }
+
+                                    @Override
+                                    public void onFilesProgressChanged(int currentFile, int totalFiles, int transferType) {
+                                        listener.onFilesProgressChanged(currentFile, totalFiles, transferType);
+                                    }
+
+                                    @Override
+                                    public void onFinish(int transferType) {
+                                        onFinish.call();
+                                        listener.onFinish(transferType);
+                                    }
+                                });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+        }.execute();
+    }
+
+    /**
+     * Metodo privato per pulizia del codice, che sincronizza le note remote con le note locali.
+     *
+     * @param remoteNotesList lista delle note remote, passata per ottimizzare le operazioni
+     * @param listener        listener per il trasferimento multiplo di file
+     * @param onFinish        callback che stabilisce la fine del processo
+     */
+    private void syncRemoteWithLocal(ArrayList<Nota> remoteNotesList,
+                                     OnMultipleTransferListener listener,
+                                     final Callback onFinish) {
+        ArrayList<Nota> downloadPool = new ArrayList<>();
+
+        ArrayList<Nota> localNotesList;
+        try {
+            localNotesList = CouchbaseDB.getInstance().leggiNote();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to read notes from database. " + e.getMessage());
+        }
+
+        // aggiungo le note remote da scaricare al pool
+        for (Nota remoteNote : remoteNotesList) {
+            if (!localNotesList.contains(remoteNote)) {
+                downloadPool.add(remoteNote);
+            }
+        }
+    }
+
+    public void syncLocalWithRemote(OnSingleTransferListener transferListener) {
+        // TODO
+    }
+
+    public void syncRemoteWithLocal(OnSingleTransferListener transferListener) {
+        // TODO
+    }
+
+    /**
+     * Scarica l'elenco di note presenti su S3 e popola un ArrayList ritornato come primo parametro
+     * della callback.
+     *
+     * @param listener               OnSingleTransferListener per la gestione degli eventi
+     * @param scaricamentoNoteFinito callback che restituisce le note scaricate
+     */
+    private void getNotesList(final OnMultipleTransferListener listener, final Callback scaricamentoNoteFinito) {
         new AsyncTask<Void, Void, Void>() {
             List<String> notesKeys;
 
@@ -177,76 +455,6 @@ public class S3Manager {
 
                     final TransferUtility transferUtility = new TransferUtility(amazonS3, NoteMeApp.getInstance());
 
-                    final Callback scaricamentoNoteFinito = new Callback() {
-                        @Override
-                        public void call(Object... args) {
-                            // ho finito lo scaricamento delle note
-                            // posso scaricarmi i file multimediali
-                            ArrayList<Nota> notesList = (ArrayList<Nota>) args[0];
-                            try {
-                                CouchbaseDB.getInstance().salvaNote(notesList);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (CouchbaseLiteException e) {
-                                e.printStackTrace();
-                            }
-                            for (Nota nota : notesList) {
-                                if (nota.getAudio() != null) {
-                                    File localFile = new File(nota.getAudio());
-                                    transferUtility.download(BUCKET_NAME, BUCKET_AUDIO_DIR + localFile.getName(), localFile)
-                                            .setTransferListener(new TransferListener() {
-                                                @Override
-                                                public void onStateChanged(int id, TransferState state) {
-                                                    if (state == TransferState.COMPLETED) {
-                                                        listener.onFinish(id);
-                                                    } else if (state == TransferState.WAITING_FOR_NETWORK) {
-                                                        listener.onWaitingForNetwork(id);
-                                                    } else if (state == TransferState.FAILED) {
-                                                        listener.onFailure(id);
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                                                    listener.onProgressChanged(id, bytesCurrent, bytesTotal);
-                                                }
-
-                                                @Override
-                                                public void onError(int id, Exception ex) {
-                                                    listener.onError(id, ex);
-                                                }
-                                            });
-                                }
-                                if (nota.getImage() != null) {
-                                    File localFile = new File(nota.getImage());
-                                    transferUtility.download(BUCKET_NAME, BUCKET_IMAGES_DIR + localFile.getName(), localFile)
-                                            .setTransferListener(new TransferListener() {
-                                                @Override
-                                                public void onStateChanged(int id, TransferState state) {
-                                                    if (state == TransferState.COMPLETED) {
-                                                        listener.onFinish(id);
-                                                    } else if (state == TransferState.WAITING_FOR_NETWORK) {
-                                                        listener.onWaitingForNetwork(id);
-                                                    } else if (state == TransferState.FAILED) {
-                                                        listener.onFailure(id);
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                                                    listener.onProgressChanged(id, bytesCurrent, bytesTotal);
-                                                }
-
-                                                @Override
-                                                public void onError(int id, Exception ex) {
-                                                    listener.onError(id, ex);
-                                                }
-                                            });
-                                }
-                            }
-                        }
-                    };
-
                     for (String key : notesKeys) {
                         // ottengo un filename come questo: noteme/notes/c31c06b2-ac23-4c9d-9f3e-2701b159fd00.note
                         String filename = (key.split("/")[2]).replace(".note", "");
@@ -258,7 +466,7 @@ public class S3Manager {
                         }
                         if (tempFile != null) {
                             final File file = tempFile;
-                            transferUtility.download(BUCKET_NAME, key, tempFile)
+                            transferUtility.download(BUCKET_NAME, key, file)
                                     .setTransferListener(new TransferListener() {
                                         @Override
                                         public void onStateChanged(int id, TransferState state) {
@@ -308,18 +516,18 @@ public class S3Manager {
                                                 }
                                                 // se ho un errore lo mando su
                                             } else if (state == TransferState.FAILED) {
-                                                listener.onFailure(id);
+                                                listener.onFileTransferFailed(file, TRANSFER_DOWNLOAD, null);
                                             }
                                         }
 
                                         @Override
                                         public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-
+                                            listener.onSingleFileProgressChanged(file, bytesCurrent, bytesTotal, TRANSFER_DOWNLOAD);
                                         }
 
                                         @Override
                                         public void onError(int id, Exception ex) {
-                                            listener.onError(id, ex);
+                                            listener.onFileTransferFailed(file, TRANSFER_DOWNLOAD, ex);
                                         }
                                     });
                         }
@@ -328,51 +536,83 @@ public class S3Manager {
                 }
             }
         }.execute();
-
-        return null;
     }
+
 
     /**
-     * Metodo che sincronizza tutte le note locali con quelle in remoto, scaricando le note remote
-     * non presenti in locale, e caricando le note locali non presenti in remoto.
-     * Si appoggia al database locale.
-     *
-     * @return List di Nota contenente tutte le note
+     * Valore booleano che determina se la sincronizzazione è in corso.
      */
-    public List<Nota> sync() {
-        // TODO
-        return null;
+    public boolean isSyncing() {
+        return !downSyncCompleted && !upSyncCompleted;
     }
 
-    private OnTransferListener dummyInitForListener() {
-        return new OnTransferListener() {
+//    private OnSingleTransferListener dummyInitForSingleTransferListener() {
+//        return new OnSingleTransferListener() {
+//            @Override
+//            public void onStart(int transferID) {
+//
+//            }
+//
+//            @Override
+//            public void onProgressChanged(int transferID, long bytesCurrent, long totalBytes) {
+//
+//            }
+//
+//            @Override
+//            public void onWaitingForNetwork(int transferID) {
+//
+//            }
+//
+//            @Override
+//            public void onFinish(int transferID) {
+//
+//            }
+//
+//            @Override
+//            public void onFailure(int transferID) {
+//
+//            }
+//
+//            @Override
+//            public void onError(int transferID, Exception e) {
+//
+//            }
+//        };
+//    }
+
+    private OnMultipleTransferListener dummyInitForMultipleTransferListener() {
+        return new OnMultipleTransferListener() {
             @Override
-            public void onStart(int transferID) {
+            public void onFileTransferred(File file, int transferType) {
 
             }
 
             @Override
-            public void onProgressChanged(int transferID, long bytesCurrent, long totalBytes) {
+            public void onFilesProgressChanged(int currentFile, int totalFiles, int transferType) {
 
             }
 
             @Override
-            public void onWaitingForNetwork(int transferID) {
+            public void onSingleFileProgressChanged(File file, long currentBytes, long totalBytes, int transferType) {
 
             }
 
             @Override
-            public void onFinish(int transferID) {
+            public void onFileTransferFailed(File file, int transferType, Exception e) {
 
             }
 
             @Override
-            public void onFailure(int transferID) {
+            public void onFinish(int transferType) {
 
             }
+        };
+    }
 
+    private SyncListener dummyInitForSyncListener() {
+        return new SyncListener() {
             @Override
-            public void onError(int transferID, Exception e) {
+            public void onSyncFinished() {
 
             }
         };

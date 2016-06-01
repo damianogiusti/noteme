@@ -121,6 +121,14 @@ public class Nota implements Parcelable {
         this.expireDate = expireDate;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Nota))
+            return false;
+        Nota nota = (Nota)o;
+        return nota.getID().equals(nota.getID());
+    }
+
     // parte per la parcellizzazione
 
     @Override
