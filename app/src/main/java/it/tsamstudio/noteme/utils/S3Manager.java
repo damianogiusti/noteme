@@ -38,26 +38,7 @@ public class S3Manager {
     public static final int TRANSFER_UPLOAD = 1;
     public static final int TRANSFER_DOWNLOAD = 2;
 
-    /**
-     * Interfaccia che penso useremo per tornare indietro lo stato del trasferimento,
-     * che ovviamente sarà asincrono.
-     * TODO pensare bene come implementarla
-     */
-    public interface OnSingleTransferListener {
-        void onStart(int transferID);
-
-        void onProgressChanged(int transferID, long bytesCurrent, long totalBytes);
-
-        void onWaitingForNetwork(int transferID);
-
-        void onFinish(int transferID);
-
-        void onFailure(int transferID);
-
-        void onError(int transferID, Exception e);
-    }
-
-    public interface OnMultipleTransferListener {
+    public interface MultipleTransferListener {
         void onFileTransferred(File file, int transferType);
 
         void onFileTransferFailed(File file, int transferType, Exception e);
@@ -72,6 +53,8 @@ public class S3Manager {
     public interface SyncListener {
         //        void onLocalToRemoteSyncCompleted();
 //        void onRemoteToLocalSyncCompleted();
+        void onSyncStarted();
+
         void onSyncFinished();
     }
 
@@ -96,11 +79,12 @@ public class S3Manager {
     private boolean downSyncCompleted = true;
 
     private S3Manager() {
-        amazonS3 = new AmazonS3Client(new CognitoCachingCredentialsProvider(
+        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 NoteMeApp.getInstance().getApplicationContext(),
                 "eu-west-1:840029f3-c8ed-4720-8490-5e010e6875e9",
                 Regions.EU_WEST_1
-        ));
+        );
+        amazonS3 = new AmazonS3Client(credentialsProvider);
 
         transferUtility = new TransferUtility(amazonS3, NoteMeApp.getInstance().getApplicationContext());
     }
@@ -111,13 +95,13 @@ public class S3Manager {
      * @param nota Nota da caricare
      */
     public void uploadNota(Nota nota,
-                           OnMultipleTransferListener multipleTransferListener)
+                           MultipleTransferListener multipleTransferListener)
             throws IOException {
 
         if (multipleTransferListener == null) {
             multipleTransferListener = dummyInitForMultipleTransferListener();
         }
-        final OnMultipleTransferListener onMultipleTransferListener = multipleTransferListener;
+        final MultipleTransferListener onMultipleTransferListener = multipleTransferListener;
 
         List<File> noteFiles;
         noteFiles = CouchbaseDB.getInstance().getNoteFiles(nota.getID());
@@ -166,12 +150,12 @@ public class S3Manager {
      *
      * @return Lista di note scaricate
      */
-    public void downloadAllNotes(OnMultipleTransferListener transferListener) {
+    public void downloadAllNotes(MultipleTransferListener transferListener) {
 
         if (transferListener == null) {
             transferListener = dummyInitForMultipleTransferListener();
         }
-        final OnMultipleTransferListener listener = transferListener;
+        final MultipleTransferListener listener = transferListener;
 
         getNotesList(listener, new Callback() {
             @Override
@@ -198,7 +182,7 @@ public class S3Manager {
      *
      * @param
      */
-    private void downloadNoteMedias(Nota nota, final OnMultipleTransferListener listener) {
+    private void downloadNoteMedias(Nota nota, final MultipleTransferListener listener) {
         if (nota.getAudio() != null) {
             final File localFile = new File(nota.getAudio());
             transferUtility.download(BUCKET_NAME, BUCKET_AUDIO_DIR + localFile.getName(), localFile)
@@ -258,15 +242,15 @@ public class S3Manager {
      * non presenti in locale, e caricando le note locali non presenti in remoto.
      * Si appoggia al database locale.
      */
-    public void sync(SyncListener syncListener, OnMultipleTransferListener multipleTransferListener) {
+    public void sync(SyncListener syncListener, MultipleTransferListener multipleTransferListener) {
         if (syncListener == null) {
             syncListener = dummyInitForSyncListener();
         }
         if (multipleTransferListener == null) {
             multipleTransferListener = dummyInitForMultipleTransferListener();
         }
-        final SyncListener listener = syncListener;
-        final OnMultipleTransferListener onMultipleTransferListener = multipleTransferListener;
+        final SyncListener onSyncListener = syncListener;
+        final MultipleTransferListener onMultipleTransferListener = multipleTransferListener;
 
         getNotesList(onMultipleTransferListener, new Callback() {
             @Override
@@ -274,16 +258,21 @@ public class S3Manager {
                 ArrayList<Nota> remoteNoteList = (ArrayList<Nota>) args[0];
 
                 upSyncCompleted = false;
+                onSyncListener.onSyncStarted();
                 syncLocalWithRemote(remoteNoteList,
                         onMultipleTransferListener,
                         new Callback() {
                             @Override
                             public void call(Object... args) {
-                                upSyncCompleted = true;
-                                if (!isSyncing()) {
-                                    // questo viene chiamato una volta sola perchè
-                                    // non finiranno mai nello stesso tempo
-                                    listener.onSyncFinished();
+                                int currentIndex = (int) args[0];
+                                int poolSize = (int) args[1];
+                                if (currentIndex == poolSize) {
+                                    upSyncCompleted = true;
+                                    if (!isSyncing()) {
+                                        // questo viene chiamato una volta sola perchè
+                                        // non finiranno mai nello stesso tempo
+                                        onSyncListener.onSyncFinished();
+                                    }
                                 }
                             }
                         });
@@ -293,11 +282,15 @@ public class S3Manager {
                         new Callback() {
                             @Override
                             public void call(Object... args) {
-                                downSyncCompleted = true;
-                                if (!isSyncing()) {
-                                    // questo sarà chiamato una volta sola perchè
-                                    // non finiranno mai nello stesso tempo
-                                    listener.onSyncFinished();
+                                int currentIndex = (int) args[0];
+                                int poolSize = (int) args[1];
+                                if (currentIndex == poolSize) {
+                                    downSyncCompleted = true;
+                                    if (!isSyncing()) {
+                                        // questo sarà chiamato una volta sola perchè
+                                        // non finiranno mai nello stesso tempo
+                                        onSyncListener.onSyncFinished();
+                                    }
                                 }
                             }
                         });
@@ -324,7 +317,7 @@ public class S3Manager {
      * @param onFinish        callback che stabilisce la fine del processo
      */
     private void syncLocalWithRemote(final ArrayList<Nota> remoteNotesList,
-                                     final OnMultipleTransferListener listener,
+                                     final MultipleTransferListener listener,
                                      final Callback onFinish) {
         new AsyncTask<Void, Void, Void>() {
 
@@ -350,12 +343,14 @@ public class S3Manager {
 
             @Override
             protected Void doInBackground(Void... params) {
-                final int counter = 0;
                 // TODO capire come notificare che tutte le note sono state caricate
-                for (Nota nota : uploadPool) {
+                final int poolSize = uploadPool.size();
+                for (int i = 0; i < uploadPool.size(); i++) {
+                    final Nota nota = uploadPool.get(i);
+                    final int index = i + 1;
                     try {
                         uploadNota(nota,
-                                new OnMultipleTransferListener() {
+                                new MultipleTransferListener() {
                                     @Override
                                     public void onFileTransferred(File file, int transferType) {
                                         listener.onFileTransferred(file, transferType);
@@ -374,12 +369,12 @@ public class S3Manager {
                                     @Override
                                     public void onFilesProgressChanged(int currentFile, int totalFiles, int transferType) {
                                         listener.onFilesProgressChanged(currentFile, totalFiles, transferType);
-                                        onFinish.call(counter);
                                     }
 
                                     @Override
                                     public void onFinish(int transferType) {
                                         listener.onFinish(transferType);
+                                        onFinish.call(index, poolSize);
                                     }
                                 });
                     } catch (IOException e) {
@@ -399,7 +394,7 @@ public class S3Manager {
      * @param onFinish        callback che stabilisce la fine del processo
      */
     private void syncRemoteWithLocal(ArrayList<Nota> remoteNotesList,
-                                     OnMultipleTransferListener listener,
+                                     final MultipleTransferListener listener,
                                      final Callback onFinish) {
         ArrayList<Nota> downloadPool = new ArrayList<>();
 
@@ -425,22 +420,53 @@ public class S3Manager {
             e.printStackTrace();
         }
 
-        for (Nota nota : downloadPool) {
-            downloadNoteMedias(nota, listener);
+        final int poolSize = downloadPool.size();
+        for (int i = 0; i < downloadPool.size(); i++) {
+            final Nota nota = downloadPool.get(i);
+            final int currentIndex = i + 1;
+            downloadNoteMedias(nota, new MultipleTransferListener() {
+                @Override
+                public void onFileTransferred(File file, int transferType) {
+                    listener.onFileTransferred(file, transferType);
+                }
+
+                @Override
+                public void onFileTransferFailed(File file, int transferType, Exception e) {
+                    listener.onFileTransferFailed(file, transferType, e);
+                }
+
+                @Override
+                public void onFilesProgressChanged(int currentFile, int totalFiles, int transferType) {
+                    listener.onFilesProgressChanged(currentFile, totalFiles, transferType);
+                }
+
+                @Override
+                public void onSingleFileProgressChanged(File file, long currentBytes, long totalBytes, int transferType) {
+                    listener.onSingleFileProgressChanged(file, currentBytes, totalBytes, transferType);
+                }
+
+                @Override
+                public void onFinish(int transferType) {
+                    listener.onFinish(transferType);
+                    onFinish.call(currentIndex, poolSize);
+
+                }
+            });
         }
         // TODO capire come notificare che tutte le note sono state scaricate
     }
 
-    public void syncLocalWithRemote(OnSingleTransferListener transferListener) {
+    public void syncLocalWithRemote(SyncListener transferListener) {
         // TODO
     }
 
-    public void syncRemoteWithLocal(OnSingleTransferListener transferListener) {
+    public void syncRemoteWithLocal(SyncListener transferListener) {
         // TODO
     }
 
     /**
      * Metodo che elimina da remoto la nota specificata.
+     *
      * @param nota Nota da eliminare su S3
      */
     public void deleteNoteFromRemote(Nota nota) {
@@ -460,7 +486,7 @@ public class S3Manager {
      * @param listener               OnSingleTransferListener per la gestione degli eventi
      * @param scaricamentoNoteFinito callback che restituisce le note scaricate
      */
-    private void getNotesList(final OnMultipleTransferListener listener, final Callback scaricamentoNoteFinito) {
+    private void getNotesList(final MultipleTransferListener listener, final Callback scaricamentoNoteFinito) {
         new AsyncTask<Void, Void, Void>() {
             List<String> notesKeys;
 
@@ -619,8 +645,8 @@ public class S3Manager {
 //        };
 //    }
 
-    private OnMultipleTransferListener dummyInitForMultipleTransferListener() {
-        return new OnMultipleTransferListener() {
+    private MultipleTransferListener dummyInitForMultipleTransferListener() {
+        return new MultipleTransferListener() {
             @Override
             public void onFileTransferred(File file, int transferType) {
 
@@ -650,6 +676,11 @@ public class S3Manager {
 
     private SyncListener dummyInitForSyncListener() {
         return new SyncListener() {
+            @Override
+            public void onSyncStarted() {
+
+            }
+
             @Override
             public void onSyncFinished() {
 
