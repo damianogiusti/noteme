@@ -186,61 +186,70 @@ public class S3Manager {
                     e.printStackTrace();
                 }
                 for (Nota nota : notesList) {
-                    if (nota.getAudio() != null) {
-                        final File localFile = new File(nota.getAudio());
-                        transferUtility.download(BUCKET_NAME, BUCKET_AUDIO_DIR + localFile.getName(), localFile)
-                                .setTransferListener(new TransferListener() {
-                                    @Override
-                                    public void onStateChanged(int id, TransferState state) {
-                                        if (state == TransferState.COMPLETED) {
-                                            listener.onFinish(TRANSFER_DOWNLOAD);
-                                        } else if (state == TransferState.WAITING_FOR_NETWORK) {
-//                                            listener.onWaitingForNetwork(id);
-                                        } else if (state == TransferState.FAILED) {
-                                            listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, null);
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                                        listener.onSingleFileProgressChanged(localFile, bytesCurrent, bytesTotal, TRANSFER_DOWNLOAD);
-                                    }
-
-                                    @Override
-                                    public void onError(int id, Exception ex) {
-                                        listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, ex);
-                                    }
-                                });
-                    }
-                    if (nota.getImage() != null) {
-                        final File localFile = new File(nota.getImage());
-                        transferUtility.download(BUCKET_NAME, BUCKET_IMAGES_DIR + localFile.getName(), localFile)
-                                .setTransferListener(new TransferListener() {
-                                    @Override
-                                    public void onStateChanged(int id, TransferState state) {
-                                        if (state == TransferState.COMPLETED) {
-                                            listener.onFinish(id);
-                                        } else if (state == TransferState.WAITING_FOR_NETWORK) {
-
-                                        } else if (state == TransferState.FAILED) {
-                                            listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, null);
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                                        listener.onSingleFileProgressChanged(localFile, bytesCurrent, bytesTotal, TRANSFER_DOWNLOAD);
-                                    }
-
-                                    @Override
-                                    public void onError(int id, Exception ex) {
-                                        listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, ex);
-                                    }
-                                });
-                    }
+                    downloadNoteMedias(nota, listener);
                 }
             }
         });
+    }
+
+    /**
+     * Metodo utile per scaricare una sola nota, data la key del bucket.
+     *
+     * @param
+     */
+    private void downloadNoteMedias(Nota nota, final OnMultipleTransferListener listener) {
+        if (nota.getAudio() != null) {
+            final File localFile = new File(nota.getAudio());
+            transferUtility.download(BUCKET_NAME, BUCKET_AUDIO_DIR + localFile.getName(), localFile)
+                    .setTransferListener(new TransferListener() {
+                        @Override
+                        public void onStateChanged(int id, TransferState state) {
+                            if (state == TransferState.COMPLETED) {
+                                listener.onFinish(TRANSFER_DOWNLOAD);
+                            } else if (state == TransferState.WAITING_FOR_NETWORK) {
+//                                            listener.onWaitingForNetwork(id);
+                            } else if (state == TransferState.FAILED) {
+                                listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, null);
+                            }
+                        }
+
+                        @Override
+                        public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                            listener.onSingleFileProgressChanged(localFile, bytesCurrent, bytesTotal, TRANSFER_DOWNLOAD);
+                        }
+
+                        @Override
+                        public void onError(int id, Exception ex) {
+                            listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, ex);
+                        }
+                    });
+        }
+        if (nota.getImage() != null) {
+            final File localFile = new File(nota.getImage());
+            transferUtility.download(BUCKET_NAME, BUCKET_IMAGES_DIR + localFile.getName(), localFile)
+                    .setTransferListener(new TransferListener() {
+                        @Override
+                        public void onStateChanged(int id, TransferState state) {
+                            if (state == TransferState.COMPLETED) {
+                                listener.onFinish(id);
+                            } else if (state == TransferState.WAITING_FOR_NETWORK) {
+
+                            } else if (state == TransferState.FAILED) {
+                                listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, null);
+                            }
+                        }
+
+                        @Override
+                        public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                            listener.onSingleFileProgressChanged(localFile, bytesCurrent, bytesTotal, TRANSFER_DOWNLOAD);
+                        }
+
+                        @Override
+                        public void onError(int id, Exception ex) {
+                            listener.onFileTransferFailed(localFile, TRANSFER_DOWNLOAD, ex);
+                        }
+                    });
+        }
     }
 
     /**
@@ -340,6 +349,8 @@ public class S3Manager {
 
             @Override
             protected Void doInBackground(Void... params) {
+                final int counter = 0;
+                // TODO capire come notificare che tutte le note sono state caricate
                 for (Nota nota : uploadPool) {
                     try {
                         uploadNota(nota,
@@ -362,11 +373,11 @@ public class S3Manager {
                                     @Override
                                     public void onFilesProgressChanged(int currentFile, int totalFiles, int transferType) {
                                         listener.onFilesProgressChanged(currentFile, totalFiles, transferType);
+                                        onFinish.call(counter);
                                     }
 
                                     @Override
                                     public void onFinish(int transferType) {
-                                        onFinish.call();
                                         listener.onFinish(transferType);
                                     }
                                 });
@@ -404,6 +415,19 @@ public class S3Manager {
                 downloadPool.add(remoteNote);
             }
         }
+
+        try {
+            CouchbaseDB.getInstance().salvaNote(downloadPool);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+
+        for (Nota nota : downloadPool) {
+            downloadNoteMedias(nota, listener);
+        }
+        // TODO capire come notificare che tutte le note sono state scaricate
     }
 
     public void syncLocalWithRemote(OnSingleTransferListener transferListener) {
