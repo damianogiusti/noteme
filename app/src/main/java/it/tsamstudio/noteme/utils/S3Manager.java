@@ -58,6 +58,10 @@ public class S3Manager {
         void onSyncFinished();
     }
 
+    public interface DeletionListener {
+        void onDeleted(Nota nota);
+    }
+
     private static final String BUCKET_NAME = "tsac-its";
     private static final String BUCKET_DIR = "noteme/";
     private static final String BUCKET_NOTES_DIR = BUCKET_DIR + "notes/";
@@ -345,6 +349,10 @@ public class S3Manager {
             protected Void doInBackground(Void... params) {
                 // TODO capire come notificare che tutte le note sono state caricate
                 final int poolSize = uploadPool.size();
+                if (poolSize == 0) {
+                    onFinish.call(0, 0);
+                    return null;
+                }
                 for (int i = 0; i < uploadPool.size(); i++) {
                     final Nota nota = uploadPool.get(i);
                     final int index = i + 1;
@@ -414,13 +422,15 @@ public class S3Manager {
 
         try {
             CouchbaseDB.getInstance().salvaNote(downloadPool);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to store downloaded notes. " + e.getMessage());
         }
 
         final int poolSize = downloadPool.size();
+        if (poolSize == 0) {
+            onFinish.call(0, 0);
+            return;
+        }
         for (int i = 0; i < downloadPool.size(); i++) {
             final Nota nota = downloadPool.get(i);
             final int currentIndex = i + 1;
@@ -469,14 +479,30 @@ public class S3Manager {
      *
      * @param nota Nota da eliminare su S3
      */
-    public void deleteNoteFromRemote(Nota nota) {
-        amazonS3.deleteObject(new DeleteObjectRequest(BUCKET_NAME, BUCKET_NOTES_DIR + nota.getID() + ".note"));
-        if (nota.getAudio() != null) {
-            amazonS3.deleteObject(new DeleteObjectRequest(BUCKET_NAME, BUCKET_AUDIO_DIR + nota.getAudio()));
-        }
-        if (nota.getImage() != null) {
-            amazonS3.deleteObject(new DeleteObjectRequest(BUCKET_NAME, BUCKET_IMAGES_DIR + nota.getImage()));
-        }
+    public void deleteNoteFromRemote(final Nota nota, DeletionListener deletionListener) {
+        if (deletionListener == null)
+            deletionListener = dummyInitForDeletionListener();
+        final DeletionListener onDeletionListener = deletionListener;
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                amazonS3.deleteObject(new DeleteObjectRequest(BUCKET_NAME, BUCKET_NOTES_DIR + nota.getID() + ".note"));
+                if (nota.getAudio() != null) {
+                    amazonS3.deleteObject(new DeleteObjectRequest(BUCKET_NAME, BUCKET_AUDIO_DIR + new File(nota.getAudio()).getName()));
+                }
+                if (nota.getImage() != null) {
+                    amazonS3.deleteObject(new DeleteObjectRequest(BUCKET_NAME, BUCKET_IMAGES_DIR + new File(nota.getImage()).getName()));
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                onDeletionListener.onDeleted(nota);
+            }
+        }.execute();
     }
 
     /**
@@ -519,6 +545,11 @@ public class S3Manager {
                     final List<Nota> notesList = new ArrayList<>(notesKeys.size());
 
                     final TransferUtility transferUtility = new TransferUtility(amazonS3, NoteMeApp.getInstance());
+
+                    if (notesKeys.size() == 0) {
+                        scaricamentoNoteFinito.call(notesList);
+                        return;
+                    }
 
                     for (String key : notesKeys) {
                         // ottengo un filename come questo: noteme/notes/c31c06b2-ac23-4c9d-9f3e-2701b159fd00.note
@@ -683,6 +714,15 @@ public class S3Manager {
 
             @Override
             public void onSyncFinished() {
+
+            }
+        };
+    }
+
+    private DeletionListener dummyInitForDeletionListener() {
+        return new DeletionListener() {
+            @Override
+            public void onDeleted(Nota nota) {
 
             }
         };
