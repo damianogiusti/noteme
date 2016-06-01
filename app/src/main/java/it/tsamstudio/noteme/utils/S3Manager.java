@@ -174,7 +174,7 @@ public class S3Manager {
                 if (notesKeys != null) {
                     final List<Nota> notesList = new ArrayList<>(notesKeys.size());
 
-                    TransferUtility transferUtility = new TransferUtility(amazonS3, NoteMeApp.getInstance());
+                    final TransferUtility transferUtility = new TransferUtility(amazonS3, NoteMeApp.getInstance());
 
                     final Callback scaricamentoNoteFinito = new Callback() {
                         @Override
@@ -184,6 +184,60 @@ public class S3Manager {
                             Log.d(TAG, "call: ");
                             List<Nota> notesList = (ArrayList<Nota>) args[0];
                             // TODO recupero file multimediali da path della nota
+                            for (Nota nota : notesList) {
+                                if (nota.getAudio() != null) {
+                                    File localFile = new File(nota.getAudio());
+                                    transferUtility.download(BUCKET_NAME, BUCKET_AUDIO_DIR + localFile.getName(), localFile)
+                                            .setTransferListener(new TransferListener() {
+                                                @Override
+                                                public void onStateChanged(int id, TransferState state) {
+                                                    if (state == TransferState.COMPLETED) {
+                                                        listener.onFinish(id);
+                                                    } else if (state == TransferState.WAITING_FOR_NETWORK) {
+                                                        listener.onWaitingForNetwork(id);
+                                                    } else if (state == TransferState.FAILED) {
+                                                        listener.onFailure(id);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                                                    listener.onProgressChanged(id, bytesCurrent, bytesTotal);
+                                                }
+
+                                                @Override
+                                                public void onError(int id, Exception ex) {
+                                                    listener.onError(id, ex);
+                                                }
+                                            });
+                                }
+                                if (nota.getImage() != null) {
+                                    File localFile = new File(nota.getImage());
+                                    transferUtility.download(BUCKET_NAME, BUCKET_IMAGES_DIR + localFile.getName(), localFile)
+                                            .setTransferListener(new TransferListener() {
+                                                @Override
+                                                public void onStateChanged(int id, TransferState state) {
+                                                    if (state == TransferState.COMPLETED) {
+                                                        listener.onFinish(id);
+                                                    } else if (state == TransferState.WAITING_FOR_NETWORK) {
+                                                        listener.onWaitingForNetwork(id);
+                                                    } else if (state == TransferState.FAILED) {
+                                                        listener.onFailure(id);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                                                    listener.onProgressChanged(id, bytesCurrent, bytesTotal);
+                                                }
+
+                                                @Override
+                                                public void onError(int id, Exception ex) {
+                                                    listener.onError(id, ex);
+                                                }
+                                            });
+                                }
+                            }
                         }
                     };
 

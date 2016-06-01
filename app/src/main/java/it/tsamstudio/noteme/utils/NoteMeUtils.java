@@ -132,8 +132,7 @@ public class NoteMeUtils {
     public static File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", NoteMeApp.getInstance().getLocale()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = NoteMeApp.getInstance().getApplicationContext().getExternalFilesDir(
-                Environment.DIRECTORY_PICTURES);
+        File storageDir = new File(getImagePath());
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
@@ -356,5 +355,14 @@ public class NoteMeUtils {
 
     public static boolean isBlank(String string) {
         return string == null || string.trim().equals("");
+    }
+
+    public static String getAudioPath() {
+        return NoteMeApp.getInstance().getApplicationContext().getExternalFilesDir("NoteMeAudios") + "/";
+    }
+
+    public static String getImagePath() {
+        return NoteMeApp.getInstance().getApplicationContext().getExternalFilesDir(
+                Environment.DIRECTORY_PICTURES).getAbsolutePath();
     }
 }
