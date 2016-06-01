@@ -9,6 +9,7 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.couchbase.lite.CouchbaseLiteException;
@@ -412,6 +413,20 @@ public class S3Manager {
 
     public void syncRemoteWithLocal(OnSingleTransferListener transferListener) {
         // TODO
+    }
+
+    /**
+     * Metodo che elimina da remoto la nota specificata.
+     * @param nota Nota da eliminare su S3
+     */
+    public void deleteNoteFromRemote(Nota nota) {
+        amazonS3.deleteObject(new DeleteObjectRequest(BUCKET_NAME, BUCKET_NOTES_DIR + nota.getID() + ".note"));
+        if (nota.getAudio() != null) {
+            amazonS3.deleteObject(new DeleteObjectRequest(BUCKET_NAME, BUCKET_AUDIO_DIR + nota.getAudio()));
+        }
+        if (nota.getImage() != null) {
+            amazonS3.deleteObject(new DeleteObjectRequest(BUCKET_NAME, BUCKET_IMAGES_DIR + nota.getImage()));
+        }
     }
 
     /**
