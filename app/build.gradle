@@ -46,6 +46,10 @@ dependencies {
     compile 'com.wdullaer:materialdatetimepicker:2.3.0'
     compile 'com.github.michaldrabik:tapbarmenu:1.0.5'
     compile project(':Material-Color-Picker-master')
+    // S3
+    compile 'com.amazonaws:aws-android-sdk-core:2.+'
+    compile 'com.amazonaws:aws-android-sdk-cognito:2.+'
+    compile 'com.amazonaws:aws-android-sdk-s3:2.+'
     // encryption
     compile 'com.scottyab:aescrypt:0.0.1'
 }

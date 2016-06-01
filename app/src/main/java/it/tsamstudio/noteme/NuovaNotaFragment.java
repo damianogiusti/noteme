@@ -522,7 +522,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     private MediaRecorder setupRecorder() {
         MediaRecorder recorder = new MediaRecorder();
         isRecording = false;
-        audioOutputPath = getContext().getExternalFilesDir("NoteMeAudios") + "/" + (new Date()).getTime() + ".3gp";
+        audioOutputPath = NoteMeUtils.getAudioPath() + (new Date()).getTime() + ".3gp";
         Log.d("Setup recorder", "Path: " + audioOutputPath);
 
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);

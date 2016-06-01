@@ -37,7 +37,8 @@
                     android:id="@+id/txtUsername"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/form_username" />
+                    android:hint="@string/form_username"
+                    android:text="AKIAJWVPLIL77277XEZQ" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -53,7 +54,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/form_password"
-                    android:password="true"/>
+                    android:inputType="textPassword"
+                    android:text="EQ0PevRXpt3o0vQ/30Ozz4x6ZpZGS1AwI2uzQVSi" />
 
             </android.support.design.widget.TextInputLayout>
 
