@@ -224,6 +224,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
                 .withContentView(LayoutInflater.from(getActivity()).inflate(R.layout.edittext_layout_tooltip, null)) // per contenuto customizzato
                 .withColor(getResources().getColor(R.color.colorAccent))
                 .withShadow();
+
         View vTool = toolTip.getContentView();
         tag = (EditText) vTool.findViewById(R.id.tagInToolTip);
 //        myToolTipView.setOnToolTipViewClickedListener(this);
@@ -311,14 +312,16 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
         menuImgTag.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isToolTipShown) {
+                if (myToolTipView == null || !myToolTipView.isShown()) {
                     if (myToolTipView == null)
                         myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, dialogView.findViewById(R.id.tapBarMenu));
                     myToolTipView.setVisibility(View.VISIBLE);
                     isToolTipShown = true;
                 } else {
-                    myToolTipView.setVisibility(View.INVISIBLE);
-                    isToolTipShown = false;
+                    if (myToolTipView.isShown()) {
+                        myToolTipView.setVisibility(View.INVISIBLE);
+                        isToolTipShown = false;
+                    }
                 }
             }
         });
@@ -379,7 +382,7 @@ public class NuovaNotaFragment extends DialogFragment implements View.OnClickLis
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        listener.onNuovaNotaAggiunta(saveNote());
+//        listener.onNuovaNotaAggiunta(saveNote());
         outState.putString(TAG_GUID_FOR_BUNDLE, guid);
         outState.putBoolean(TAG_KEYBOARD_FOR_BUNDLE, isKeyboardShown);
         outState.putString(TAG_AUDIO_PATH_FOR_BUNDLE, audioOutputPath);
