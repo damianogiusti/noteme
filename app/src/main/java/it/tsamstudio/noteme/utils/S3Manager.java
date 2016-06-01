@@ -189,6 +189,13 @@ public class S3Manager {
     private void downloadNoteMedias(Nota nota, final MultipleTransferListener listener) {
         if (nota.getAudio() != null) {
             final File localFile = new File(nota.getAudio());
+            if (!localFile.exists()) {
+                try {
+                    localFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             transferUtility.download(BUCKET_NAME, BUCKET_AUDIO_DIR + localFile.getName(), localFile)
                     .setTransferListener(new TransferListener() {
                         @Override
@@ -215,6 +222,13 @@ public class S3Manager {
         }
         if (nota.getImage() != null) {
             final File localFile = new File(nota.getImage());
+            if (!localFile.exists()) {
+                try {
+                    localFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             transferUtility.download(BUCKET_NAME, BUCKET_IMAGES_DIR + localFile.getName(), localFile)
                     .setTransferListener(new TransferListener() {
                         @Override
