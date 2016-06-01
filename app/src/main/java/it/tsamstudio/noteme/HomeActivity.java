@@ -184,7 +184,7 @@ public class HomeActivity extends AppCompatActivity
 
         // ciclo gli indici al contrario per non tirare IndexOutOfBoundsException
         for (int i = indexes.length - 1; i >= 0; i--) {
-            noteEliminate.set(i, notesList.get(i));
+            noteEliminate.set(indexes[i], notesList.get(indexes[i]));
             notesList.remove(indexes[i]);
             mAdapter.notifyItemRemoved(indexes[i]);
         }
