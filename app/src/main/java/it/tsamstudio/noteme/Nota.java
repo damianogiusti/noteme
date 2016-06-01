@@ -126,7 +126,7 @@ public class Nota implements Parcelable {
         if (!(o instanceof Nota))
             return false;
         Nota nota = (Nota)o;
-        return nota.getID().equals(nota.getID());
+        return getID().equals(nota.getID());
     }
 
     // parte per la parcellizzazione
